@@ -12,7 +12,7 @@ export function ChallengeCard({ challenge }: Props) {
   const langMeta = SUPPORTED_LANGUAGES.find(l => l.id === challenge.language);
   const acceptanceColor = challenge.acceptance_rate
     ? challenge.acceptance_rate >= 60 ? "text-emerald-400"
-    : challenge.acceptance_rate >= 40 ? "text-yellow-400"
+    : challenge.acceptance_rate >= 40 ? "text-amber-400"
     : "text-red-400"
     : "text-[var(--text-3)]";
 

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import type { Challenge } from "@upgradian/types";
 import { ChallengeCard } from "@/components/arena/ChallengeCard";
 import { SUPPORTED_LANGUAGES } from "@upgradian/types";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const DIFFICULTIES = ["all", "easy", "medium", "hard"] as const;
 
@@ -68,10 +69,11 @@ export function ArenaClient({ challenges }: { challenges: Partial<Challenge>[] }
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="py-20 text-center text-[var(--text-3)]">
-          <div className="text-4xl mb-3">🔍</div>
-          <div className="font-semibold">No challenges match your filters</div>
-        </div>
+        <EmptyState
+          icon="🔍"
+          title="No challenges match your filters"
+          description="Try a different search term, language, or difficulty level."
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((challenge, i) => (
