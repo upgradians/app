@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const STEPS = [
   {
@@ -48,8 +49,8 @@ export function HowItWorks() {
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Header */}
-        <div className="text-center mb-20">
+        {/* Section header */}
+        <ScrollReveal className="text-center mb-20">
           <div
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold mb-4 uppercase tracking-widest"
             style={{
@@ -78,7 +79,7 @@ export function HowItWorks() {
             A proven path that has helped thousands of Indian students go from beginner to
             industry-ready — often in under 6 months.
           </p>
-        </div>
+        </ScrollReveal>
 
         {/* Steps grid */}
         <div className="relative">
@@ -93,10 +94,7 @@ export function HowItWorks() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6">
             {STEPS.map((step, i) => (
-              <div
-                key={step.n}
-                className="flex flex-col items-center text-center group relative"
-              >
+              <ScrollReveal key={step.n} delay={i * 0.1} className="flex flex-col items-center text-center group relative">
                 {/* Mobile connector arrow between steps */}
                 {i < STEPS.length - 1 && (
                   <div className="sm:hidden absolute -bottom-7 left-1/2 -translate-x-1/2 text-white/15 text-xl">
@@ -134,13 +132,13 @@ export function HowItWorks() {
                 <p className="text-sm text-white/45 leading-relaxed max-w-[210px]">
                   {step.desc}
                 </p>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-20 text-center">
+        <ScrollReveal delay={0.35} className="mt-20 text-center">
           <Link
             href="/register"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-[#D97757] text-white text-sm font-bold transition-all hover:bg-[#C96442] hover:shadow-[0_0_40px_rgba(217,119,87,0.35)] hover:-translate-y-0.5 active:scale-95"
@@ -148,7 +146,7 @@ export function HowItWorks() {
             Start Your Journey Free →
           </Link>
           <p className="mt-3 text-xs text-white/25">No credit card required · 2-minute setup</p>
-        </div>
+        </ScrollReveal>
       </div>
     </section>
   );

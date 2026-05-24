@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const PROGRAMS = [
   { icon: "💻", title: "Full Stack Development", duration: "3 months", spots: "120+ spots", color: "#3b82f6" },
@@ -25,6 +26,7 @@ export function InternshipsSection() {
         <div className="flex flex-col lg:flex-row gap-16 items-start">
           {/* Left */}
           <div className="lg:w-2/5 lg:sticky lg:top-24">
+            <ScrollReveal>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#D97757]/25 bg-[#D97757]/[0.08] text-[#D97757] text-xs font-semibold mb-6 uppercase tracking-widest">
               Internship Programs
             </div>
@@ -68,14 +70,15 @@ export function InternshipsSection() {
             >
               Apply for Internship →
             </Link>
+            </ScrollReveal>
           </div>
 
           {/* Right: Program grid */}
           <div className="lg:w-3/5 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {PROGRAMS.map((p) => (
+            {PROGRAMS.map((p, i) => (
+              <ScrollReveal key={p.title} delay={i * 0.07}>
               <div
-                key={p.title}
-                className="rounded-2xl p-5 group hover:-translate-y-0.5 transition-all duration-300 border border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14]"
+                className="rounded-2xl p-5 group hover:-translate-y-0.5 transition-all duration-300 border border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14] h-full"
               >
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-4 group-hover:scale-110 transition-transform"
@@ -90,6 +93,7 @@ export function InternshipsSection() {
                   <span>👥 {p.spots}</span>
                 </div>
               </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>

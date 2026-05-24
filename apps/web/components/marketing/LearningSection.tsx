@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const FEATURES = [
   {
@@ -52,7 +53,7 @@ export function LearningSection() {
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-16">
+        <ScrollReveal className="text-center mb-16">
           <div
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold mb-4 uppercase tracking-widest"
             style={{ borderColor: "rgba(96,165,250,0.25)", background: "rgba(96,165,250,0.08)", color: "#93c5fd" }}
@@ -75,13 +76,13 @@ export function LearningSection() {
           <p className="mt-4 text-white/40 max-w-xl mx-auto text-sm sm:text-base">
             From your first Hello World to your first offer letter — the tools, content, and community to get you there.
           </p>
-        </div>
+        </ScrollReveal>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
-          {FEATURES.map((f) => (
+          {FEATURES.map((f, i) => (
+            <ScrollReveal key={f.title} delay={i * 0.07}>
             <div
-              key={f.title}
-              className="rounded-2xl p-6 group transition-all duration-300 hover:-translate-y-0.5 border border-white/[0.07] bg-white/[0.025] hover:bg-white/[0.05] hover:border-white/[0.15]"
+              className="rounded-2xl p-6 group transition-all duration-300 hover:-translate-y-0.5 border border-white/[0.07] bg-white/[0.025] hover:bg-white/[0.05] hover:border-white/[0.15] h-full"
             >
               <div className="text-2xl mb-3">{f.icon}</div>
               <h3 className="text-base font-bold text-white mb-2">{f.title}</h3>
@@ -89,10 +90,11 @@ export function LearningSection() {
                 {f.desc}
               </p>
             </div>
+            </ScrollReveal>
           ))}
         </div>
 
-        <div className="text-center mb-8">
+        <ScrollReveal delay={0.1} className="text-center mb-8">
           <p className="text-xs uppercase tracking-widest font-semibold mb-4" style={{ color: "rgba(255,255,255,0.25)" }}>
             Supports all major languages
           </p>
@@ -111,9 +113,9 @@ export function LearningSection() {
               </span>
             ))}
           </div>
-        </div>
+        </ScrollReveal>
 
-        <div className="text-center">
+        <ScrollReveal delay={0.2} className="text-center">
           <Link
             href="/register"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white text-sm font-bold transition-all hover:shadow-[0_0_40px_rgba(96,165,250,0.25)] hover:-translate-y-0.5"
@@ -121,7 +123,7 @@ export function LearningSection() {
           >
             Start Practicing Free →
           </Link>
-        </div>
+        </ScrollReveal>
       </div>
     </section>
   );

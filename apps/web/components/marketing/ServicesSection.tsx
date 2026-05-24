@@ -1,3 +1,5 @@
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
+
 const SERVICES = [
   {
     icon: "🤖",
@@ -41,7 +43,7 @@ export function ServicesSection() {
   return (
     <section id="services" className="py-24 bg-[#09090e]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-16">
+        <ScrollReveal className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-white/50 text-xs font-semibold mb-4 uppercase tracking-widest">
             What We Build
           </div>
@@ -61,13 +63,13 @@ export function ServicesSection() {
           <p className="mt-4 text-white/40 max-w-xl mx-auto text-sm sm:text-base">
             From AI models to mobile apps — complete technology solutions for startups, scale-ups, and enterprises.
           </p>
-        </div>
+        </ScrollReveal>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {SERVICES.map((s) => (
+          {SERVICES.map((s, i) => (
+            <ScrollReveal key={s.title} delay={i * 0.08}>
             <div
-              key={s.title}
-              className="relative rounded-2xl p-6 hover:-translate-y-1 transition-all duration-300 group"
+              className="relative rounded-2xl p-6 hover:-translate-y-1 transition-all duration-300 group h-full"
               style={{
                 background: `linear-gradient(135deg, ${s.gradFrom}, ${s.gradTo})`,
                 border: `1px solid ${s.border}`,
@@ -89,6 +91,7 @@ export function ServicesSection() {
                 ))}
               </div>
             </div>
+            </ScrollReveal>
           ))}
         </div>
       </div>

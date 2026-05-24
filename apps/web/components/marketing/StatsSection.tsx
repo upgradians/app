@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 function useCountUp(target: number, duration = 1800) {
   const [count, setCount] = useState(0);
@@ -69,7 +70,13 @@ export function StatsSection() {
             background: "rgba(255,255,255,0.02)",
           }}
         >
-          <div className="text-center mb-8">
+          <motion.div
+            className="text-center mb-8"
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          >
             <h2 className="text-2xl sm:text-3xl font-black text-white">
               Trusted by Thousands of{" "}
               <span
@@ -83,7 +90,7 @@ export function StatsSection() {
                 Developers
               </span>
             </h2>
-          </div>
+          </motion.div>
           <div
             className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
             style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
