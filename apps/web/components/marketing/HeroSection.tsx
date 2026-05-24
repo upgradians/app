@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const FLOATERS = [
-  { text: "const ai = await upgradian.build()", pos: "left-[4%] top-[32%]" },
-  { text: "rank: 'Legend' ✓", pos: "right-[6%] top-[28%]" },
-  { text: "offer.status = 'accepted' 🎉", pos: "left-[2%] bottom-[32%]" },
-  { text: "streak: 🔥 42 days", pos: "right-[4%] bottom-[36%]" },
+  { text: "const ai = await upgradian.build()", pos: "left-[4%] top-[32%]", delay: "0.9s" },
+  { text: "rank: 'Legend' ✓",                  pos: "right-[6%] top-[28%]", delay: "1.05s" },
+  { text: "offer.status = 'accepted' 🎉",       pos: "left-[2%] bottom-[32%]", delay: "1.2s" },
+  { text: "streak: 🔥 42 days",                 pos: "right-[4%] bottom-[36%]", delay: "1.35s" },
 ];
 
 interface HeroSectionProps {
@@ -16,20 +16,28 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
     <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-[#09090e] pt-16">
       {/* Grid background */}
       <div
-        className="absolute inset-0 opacity-50"
+        className="absolute inset-0"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(217,119,87,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(217,119,87,0.05) 1px,transparent 1px)",
+            "linear-gradient(rgba(217,119,87,0.045) 1px,transparent 1px),linear-gradient(90deg,rgba(217,119,87,0.045) 1px,transparent 1px)",
           backgroundSize: "60px 60px",
         }}
       />
 
-      {/* Radial glow */}
+      {/* Primary radial glow — top */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 80% 55% at 50% 0%,rgba(217,119,87,0.13) 0%,transparent 65%)",
+            "radial-gradient(ellipse 90% 60% at 50% -5%,rgba(217,119,87,0.2) 0%,transparent 65%)",
+        }}
+      />
+      {/* Secondary glow — bottom-right accent */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 50% 40% at 85% 80%,rgba(96,165,250,0.07) 0%,transparent 60%)",
         }}
       />
 
@@ -37,7 +45,13 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
       {FLOATERS.map((f) => (
         <div
           key={f.text}
-          className={`absolute hidden xl:block font-mono text-xs text-[#D97757]/25 select-none pointer-events-none ${f.pos}`}
+          className={`absolute hidden xl:block font-mono text-xs select-none pointer-events-none ${f.pos}`}
+          style={{
+            color: "rgba(217,119,87,0.4)",
+            opacity: 0,
+            animation: "fadeIn 1s ease forwards",
+            animationDelay: f.delay,
+          }}
         >
           {f.text}
         </div>
@@ -45,15 +59,25 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
 
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center py-20">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#D97757]/25 bg-[#D97757]/[0.08] mb-8">
+        <div
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#D97757]/25 bg-[#D97757]/[0.08] mb-8"
+          style={{ opacity: 0, animation: "fadeUp 0.65s cubic-bezier(0.22,1,0.36,1) forwards" }}
+        >
           <span className="w-1.5 h-1.5 rounded-full bg-[#D97757] animate-pulse" />
-          <span className="text-[#D97757] text-xs font-semibold">
+          <span className="text-[#D97757] text-xs font-semibold tracking-wide">
             India&apos;s #1 AI-Powered Developer Platform
           </span>
         </div>
 
         {/* Headline */}
-        <h1 className="text-5xl sm:text-6xl lg:text-[5.25rem] font-black tracking-tight leading-[1.06] text-white mb-6">
+        <h1
+          className="text-5xl sm:text-6xl lg:text-[5.5rem] font-black tracking-tight leading-[1.05] text-white mb-6"
+          style={{
+            opacity: 0,
+            animation: "fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards",
+            animationDelay: "0.1s",
+          }}
+        >
           Building{" "}
           <span
             style={{
@@ -80,16 +104,31 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
         </h1>
 
         {/* Subheadline */}
-        <p className="text-base sm:text-lg lg:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed mb-10">
+        <p
+          className="text-base sm:text-lg lg:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed mb-10"
+          style={{
+            opacity: 0,
+            animation: "fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards",
+            animationDelay: "0.2s",
+          }}
+        >
           Practice DSA. Compete in contests. Land real internships.
+          <br className="hidden sm:block" />
           Your complete journey from student to hired developer — powered by AI.
         </p>
 
         {/* CTA buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+        <div
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+          style={{
+            opacity: 0,
+            animation: "fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards",
+            animationDelay: "0.32s",
+          }}
+        >
           <Link
             href={isAuthenticated ? "/arena" : "/register"}
-            className="group w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-[#D97757] text-white text-sm font-bold transition-all hover:bg-[#C96442] hover:shadow-[0_0_40px_rgba(217,119,87,0.35)] hover:-translate-y-0.5"
+            className="group w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-[#D97757] text-white text-sm font-bold transition-all hover:bg-[#C96442] hover:shadow-[0_0_40px_rgba(217,119,87,0.4)] hover:-translate-y-0.5 active:scale-95"
           >
             Start Learning Free
             <svg
@@ -104,14 +143,21 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
           </Link>
           <Link
             href="/internships"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border border-white/10 text-white/80 text-sm font-semibold transition-all hover:border-white/25 hover:bg-white/5 hover:text-white"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border border-white/10 text-white/80 text-sm font-semibold transition-all hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
           >
             Explore Internships
           </Link>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 max-w-2xl mx-auto">
+        {/* Stats row */}
+        <div
+          className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 max-w-2xl mx-auto"
+          style={{
+            opacity: 0,
+            animation: "fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards",
+            animationDelay: "0.46s",
+          }}
+        >
           {[
             { value: "50K+", label: "Students Trained" },
             { value: "200+", label: "Projects Built" },
@@ -126,7 +172,8 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
         </div>
       </div>
 
-      <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#09090e] to-transparent pointer-events-none" />
+      {/* Bottom gradient fade into next section */}
+      <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#09090e] to-transparent pointer-events-none" />
     </section>
   );
 }

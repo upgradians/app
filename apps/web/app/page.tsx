@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { HeroSection } from "@/components/marketing/HeroSection";
 import { ServicesSection } from "@/components/marketing/ServicesSection";
+import { HowItWorks } from "@/components/marketing/HowItWorks";
 import { InternshipsSection } from "@/components/marketing/InternshipsSection";
 import { LearningSection } from "@/components/marketing/LearningSection";
 import { StatsSection } from "@/components/marketing/StatsSection";
@@ -36,12 +37,28 @@ export default async function HomePage() {
   return (
     <div className="bg-[#09090e] text-white overflow-x-hidden">
       <MarketingNav isAuthenticated={!!user} />
+
+      {/* 1. Hero — headline, code floaters, CTAs, stat strip */}
       <HeroSection isAuthenticated={!!user} />
+
+      {/* 2. How it works — 4-step conversion path */}
+      <HowItWorks />
+
+      {/* 3. Services — what Upgradian builds as a company */}
       <ServicesSection />
+
+      {/* 4. Internships — real projects, real experience */}
       <InternshipsSection />
+
+      {/* 5. Learning hub — platform features */}
       <LearningSection />
+
+      {/* 6. Stats — animated social-proof numbers */}
       <StatsSection />
+
+      {/* 7. Testimonials — infinite auto-scroll marquee */}
       <TestimonialsSection />
+
       <MarketingFooter />
     </div>
   );
