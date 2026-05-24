@@ -9,13 +9,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
     ],
   },
-  experimental: {
-    turbo: {
-      rules: {
-        "*.svg": { loaders: ["@svgr/webpack"], as: "*.js" },
-      },
-    },
-  },
 };
 
 export default nextConfig;
