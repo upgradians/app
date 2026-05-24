@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design Tokens ──────────────────────────────────────────────────────────── */
+:root {
+  --bg-1:        #ffffff;
+  --bg-2:        #f7f8fa;
+  --bg-3:        #f0f1f4;
+  --surface-card:#ffffff;
+  --text-1:      #1a1a1a;
+  --text-2:      #4a5568;
+  --text-3:      #9aa3b2;
+  --border:      rgba(0,0,0,0.09);
+  --brand:       #D97757;
+  --brand-dark:  #C96442;
+
+  --font-jakarta: "Plus Jakarta Sans";
+  --font-mono:    "Fira Code";
+}
+
+[data-theme="dark"] {
+  --bg-1:        #09090e;
+  --bg-2:        #0e0e15;
+  --bg-3:        #14141c;
+  --surface-card:#111118;
+  --text-1:      #f0f0f8;
+  --text-2:      #8888a0;
+  --text-3:      #484860;
+  --border:      rgba(255,255,255,0.07);
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  background: var(--bg-1);
+  color: var(--text-1);
+  -webkit-font-smoothing: antialiased;
+  transition: background .3s, color .3s;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-2); }
+::-webkit-scrollbar-thumb { background: var(--brand); border-radius: 3px; }
+
+/* ─── Focus ring ─────────────────────────────────────────────────────────────── */
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* ─── Monaco editor dark override ───────────────────────────────────────────── */
+.monaco-editor .margin { background: transparent !important; }
+
+/* ─── Code font ──────────────────────────────────────────────────────────────── */
+code, pre, .font-mono { font-family: var(--font-mono), "Fira Code", "Courier New", monospace; }

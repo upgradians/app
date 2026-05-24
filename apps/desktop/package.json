@@ -1,0 +1,59 @@
+{
+  "name": "@upgradian/desktop",
+  "version": "1.0.0",
+  "description": "Upgradian Desktop Application",
+  "main": "dist/main.js",
+  "scripts": {
+    "start":       "electron .",
+    "dev":         "concurrently \"tsc --watch\" \"nodemon --watch dist/main.js --exec electron .\"",
+    "build":       "tsc",
+    "build:win":   "electron-builder --win",
+    "build:mac":   "electron-builder --mac --universal",
+    "build:linux": "electron-builder --linux",
+    "publish:win": "electron-builder --win --publish always",
+    "publish:mac": "electron-builder --mac --universal --publish always",
+    "publish:linux": "electron-builder --linux --publish always"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.4"
+  },
+  "devDependencies": {
+    "concurrently":     "^9.0.0",
+    "electron":         "^32.0.0",
+    "electron-builder": "^25.0.0",
+    "nodemon":          "^3.1.4",
+    "typescript":       "^5.5.4"
+  },
+  "build": {
+    "appId":       "com.upgradian.desktop",
+    "productName": "Upgradian",
+    "directories": { "output": "release" },
+    "files":       ["dist/**/*", "assets/**/*"],
+    "win": {
+      "target":      [{ "target": "nsis", "arch": ["x64", "ia32"] }],
+      "icon":        "assets/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "mac": {
+      "target":      [{ "target": "dmg", "arch": ["x64", "arm64"] }],
+      "icon":        "assets/icon.icns",
+      "artifactName": "${productName}-${version}.${ext}"
+    },
+    "linux": {
+      "target":      ["AppImage", "deb"],
+      "icon":        "assets/icon.png",
+      "artifactName": "${productName}-${version}.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "upgradian",
+      "repo": "upgradian-desktop"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "afterSign": "scripts/notarize.js"
+  }
+}
