@@ -81,19 +81,7 @@ export function LearningSection() {
           {FEATURES.map((f) => (
             <div
               key={f.title}
-              className="rounded-2xl p-6 group transition-all duration-300 hover:-translate-y-0.5"
-              style={{
-                border: "1px solid rgba(255,255,255,0.07)",
-                background: "rgba(255,255,255,0.025)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = `${f.accent}30`;
-                (e.currentTarget as HTMLDivElement).style.background = `${f.accent}08`;
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.07)";
-                (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.025)";
-              }}
+              className="rounded-2xl p-6 group transition-all duration-300 hover:-translate-y-0.5 border border-white/[0.07] bg-white/[0.025] hover:bg-white/[0.05] hover:border-white/[0.15]"
             >
               <div className="text-2xl mb-3">{f.icon}</div>
               <h3 className="text-base font-bold text-white mb-2">{f.title}</h3>

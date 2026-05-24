@@ -75,19 +75,7 @@ export function InternshipsSection() {
             {PROGRAMS.map((p) => (
               <div
                 key={p.title}
-                className="rounded-2xl p-5 group hover:-translate-y-0.5 transition-all duration-300"
-                style={{
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  background: "rgba(255,255,255,0.03)",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.06)";
-                  (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.14)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.03)";
-                  (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.07)";
-                }}
+                className="rounded-2xl p-5 group hover:-translate-y-0.5 transition-all duration-300 border border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14]"
               >
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-4 group-hover:scale-110 transition-transform"
