@@ -2,33 +2,11 @@
   "name": "Upgradian Technology",
   "short_name": "Upgradian",
   "description": "Learn. Practice. Compete. Get Hired. India's AI-powered coding and placement platform.",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#09090e",
   "theme_color": "#D97757",
   "orientation": "portrait-primary",
-  "icons": [
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshots/dashboard.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    }
-  ],
   "categories": ["education", "productivity"],
   "lang": "en-IN"
 }
