@@ -1,151 +1,99 @@
 import Link from "next/link";
+import { UserPlus, Code2, Trophy, Briefcase, ArrowRight } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const STEPS = [
   {
     n: "01",
-    icon: "🚀",
+    icon: UserPlus,
     title: "Sign up in 60 seconds",
-    desc: "Create your free account with Google or GitHub. No credit card. No friction. Start building your developer profile right away.",
-    color: "#D97757",
-    glow: "rgba(217,119,87,0.18)",
+    desc: "Create your free account. No credit card. No friction. Start building your developer profile immediately.",
+    accent: "#4361ee",
   },
   {
     n: "02",
-    icon: "⚔️",
-    title: "Practice 500+ real challenges",
-    desc: "Solve curated DSA problems — Arrays to DP — in 10+ languages. Get AI-powered feedback on every single submission.",
-    color: "#60a5fa",
-    glow: "rgba(96,165,250,0.18)",
+    icon: Code2,
+    title: "Practice real challenges",
+    desc: "Solve 500+ curated DSA problems across 10+ languages. Get AI-powered feedback on every submission.",
+    accent: "#7c3aed",
   },
   {
     n: "03",
-    icon: "🏆",
-    title: "Compete and climb the ranks",
-    desc: "Join weekly timed contests, earn XP, and level up from Bronze Coder to Legend. Your name on the global leaderboard.",
-    color: "#c084fc",
-    glow: "rgba(192,132,252,0.18)",
+    icon: Trophy,
+    title: "Compete and rank up",
+    desc: "Join weekly timed contests, earn XP, and climb from Novice to Legend on the global leaderboard.",
+    accent: "#06b6d4",
   },
   {
     n: "04",
-    icon: "💼",
-    title: "Land internships & offers",
+    icon: Briefcase,
+    title: "Land your offer",
     desc: "Apply to real internships from partner companies. Get discovered by recruiters hiring directly on the platform.",
-    color: "#34d399",
-    glow: "rgba(52,211,153,0.18)",
+    accent: "#f59e0b",
   },
 ] as const;
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-28 bg-[#09090e] relative overflow-hidden">
-      {/* Subtle background glow */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 50% at 50% 100%,rgba(52,211,153,0.05),transparent)",
-        }}
-      />
+    <section id="how-it-works" className="relative py-32 overflow-hidden" style={{ background: "#000008" }}>
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 40% at 50% 100%, rgba(67,97,238,0.06), transparent)" }} />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Section header */}
         <ScrollReveal className="text-center mb-20">
           <div
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold mb-4 uppercase tracking-widest"
-            style={{
-              borderColor: "rgba(52,211,153,0.25)",
-              background: "rgba(52,211,153,0.07)",
-              color: "#6ee7b7",
-            }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold mb-5 uppercase tracking-widest"
+            style={{ borderColor: "rgba(67,97,238,0.3)", background: "rgba(67,97,238,0.08)", color: "#6c8aff" }}
           >
             How It Works
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-4">
             From Zero to{" "}
-            <span
-              style={{
-                backgroundImage: "linear-gradient(135deg,#34d399,#60a5fa)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
+            <span style={{ backgroundImage: "linear-gradient(135deg, #6c8aff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               Hired
             </span>{" "}
             in 4 Steps
           </h2>
-          <p className="mt-4 text-white/40 max-w-lg mx-auto text-sm sm:text-base">
-            A proven path that has helped thousands of Indian students go from beginner to
-            industry-ready — often in under 6 months.
+          <p className="text-white/40 max-w-lg mx-auto text-sm sm:text-base leading-relaxed">
+            A proven path that has helped thousands of Indian students go from beginner to industry-ready in under 6 months.
           </p>
         </ScrollReveal>
 
-        {/* Steps grid */}
-        <div className="relative">
-          {/* Connector line — desktop only */}
-          <div
-            className="hidden lg:block absolute top-[52px] left-[calc(12.5%+32px)] right-[calc(12.5%+32px)] h-px pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(90deg,transparent,rgba(255,255,255,0.08) 20%,rgba(255,255,255,0.08) 80%,transparent)",
-            }}
-          />
+        <div className="relative grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="hidden lg:block absolute top-8 left-[calc(12.5%+40px)] right-[calc(12.5%+40px)] h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 20%, rgba(255,255,255,0.06) 80%, transparent)" }} />
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6">
-            {STEPS.map((step, i) => (
+          {STEPS.map((step, i) => {
+            const Icon = step.icon;
+            return (
               <ScrollReveal key={step.n} delay={i * 0.1} className="flex flex-col items-center text-center group relative">
-                {/* Mobile connector arrow between steps */}
                 {i < STEPS.length - 1 && (
-                  <div className="sm:hidden absolute -bottom-7 left-1/2 -translate-x-1/2 text-white/15 text-xl">
-                    ↓
-                  </div>
+                  <div className="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-white/10 text-lg">↓</div>
                 )}
-
-                {/* Icon circle */}
                 <div
-                  className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-2xl mb-6 transition-transform duration-300 group-hover:scale-110 flex-shrink-0"
-                  style={{
-                    background: `linear-gradient(135deg,${step.color}22,${step.color}08)`,
-                    border: `1px solid ${step.color}35`,
-                  }}
+                  className="relative w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110 flex-shrink-0"
+                  style={{ background: `${step.accent}15`, border: `1px solid ${step.accent}30` }}
                 >
-                  {step.icon}
-
-                  {/* Step number badge */}
-                  <div
-                    className="absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black"
-                    style={{
-                      background: step.color,
-                      color: "#09090e",
-                      boxShadow: `0 0 12px ${step.glow}`,
-                    }}
-                  >
+                  <Icon className="w-7 h-7" style={{ color: step.accent }} strokeWidth={1.5} />
+                  <div className="absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black text-white" style={{ background: step.accent }}>
                     {i + 1}
                   </div>
                 </div>
-
-                {/* Text */}
-                <h3 className="text-base font-bold text-white mb-2.5 group-hover:text-white/90 transition-colors leading-snug">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-white/45 leading-relaxed max-w-[210px]">
-                  {step.desc}
-                </p>
+                <h3 className="text-base font-bold text-white mb-2.5 leading-snug">{step.title}</h3>
+                <p className="text-sm leading-relaxed max-w-[220px]" style={{ color: "rgba(136,146,176,0.7)" }}>{step.desc}</p>
               </ScrollReveal>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        {/* Bottom CTA */}
         <ScrollReveal delay={0.35} className="mt-20 text-center">
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-[#D97757] text-white text-sm font-bold transition-all hover:bg-[#C96442] hover:shadow-[0_0_40px_rgba(217,119,87,0.35)] hover:-translate-y-0.5 active:scale-95"
+            className="group inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+            style={{ background: "linear-gradient(135deg, #4361ee, #7c3aed)", boxShadow: "0 0 0 1px rgba(67,97,238,0.4), 0 8px 32px rgba(67,97,238,0.3)" }}
           >
-            Start Your Journey Free →
+            Start Your Journey Free
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
-          <p className="mt-3 text-xs text-white/25">No credit card required · 2-minute setup</p>
+          <p className="mt-3 text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>No credit card required · 2-minute setup</p>
         </ScrollReveal>
       </div>
     </section>

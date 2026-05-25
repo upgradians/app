@@ -3,17 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ArrowRight, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@upgradian/ui";
 
 export function LoginForm() {
   const router = useRouter();
-  const [email, setEmail]       = useState("");
+  const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [loading,  setLoading]  = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!email || !password) return;
     setLoading(true);
@@ -29,71 +29,73 @@ export function LoginForm() {
     setLoading(false);
   }
 
-  async function handleGoogleLogin() {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${location.origin}/auth/callback` },
-    });
-  }
-
-  async function handleGitHubLogin() {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "github",
-      options: { redirectTo: `${location.origin}/auth/callback` },
-    });
-  }
+  const inputClass = `
+    w-full px-4 py-3 rounded-xl text-sm text-white outline-none transition-all duration-200
+    bg-white/[0.04] border border-white/[0.09]
+    placeholder:text-white/25
+    focus:border-brand/60 focus:bg-white/[0.06]
+  `;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Social logins */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <button type="button" onClick={handleGoogleLogin}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border)] bg-transparent text-[var(--text-1)] text-sm font-semibold hover:border-brand/40 transition-colors">
-          <span>🔵</span> Google
-        </button>
-        <button type="button" onClick={handleGitHubLogin}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border)] bg-transparent text-[var(--text-1)] text-sm font-semibold hover:border-brand/40 transition-colors">
-          <span>🐙</span> GitHub
-        </button>
-      </div>
-
-      <div className="relative flex items-center gap-3 mb-2">
-        <div className="flex-1 h-px bg-[var(--border)]" />
-        <span className="text-xs text-[var(--text-3)] font-medium">or email</span>
-        <div className="flex-1 h-px bg-[var(--border)]" />
-      </div>
-
       <div>
-        <label className="block text-xs font-bold uppercase tracking-widest text-[var(--text-2)] mb-1.5">Email</label>
+        <label className="block text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "rgba(136,146,176,0.7)" }}>
+          Email
+        </label>
         <input
-          type="email" value={email} onChange={e => setEmail(e.target.value)}
-          placeholder="you@email.com" required autoComplete="email"
-          className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-2)] text-[var(--text-1)] text-sm outline-none transition-colors focus:border-brand"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          required
+          autoComplete="email"
+          className={inputClass}
         />
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <label className="block text-xs font-bold uppercase tracking-widest text-[var(--text-2)]">Password</label>
-          <Link href="/forgot-password" className="text-xs text-brand hover:underline">Forgot?</Link>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(136,146,176,0.7)" }}>
+            Password
+          </label>
+          <Link href="/forgot-password" className="text-xs font-medium transition-colors" style={{ color: "#6c8aff" }}>
+            Forgot password?
+          </Link>
         </div>
         <input
-          type="password" value={password} onChange={e => setPassword(e.target.value)}
-          placeholder="••••••••" required autoComplete="current-password"
-          className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-2)] text-[var(--text-1)] text-sm outline-none transition-colors focus:border-brand"
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="••••••••"
+          required
+          autoComplete="current-password"
+          className={inputClass}
         />
       </div>
 
-      <Button type="submit" fullWidth loading={loading} size="lg" className="mt-2">
-        Sign In
-      </Button>
+      <button
+        type="submit"
+        disabled={loading}
+        className="group w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-white text-sm font-bold transition-all duration-300 hover:-translate-y-px active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 mt-2"
+        style={{
+          background: "linear-gradient(135deg, #4361ee, #7c3aed)",
+          boxShadow: "0 0 0 1px rgba(67,97,238,0.4), 0 8px 32px rgba(67,97,238,0.3)",
+        }}
+      >
+        {loading ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <>
+            Sign In
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+          </>
+        )}
+      </button>
 
-      <p className="text-center text-sm text-[var(--text-3)]">
+      <p className="text-center text-sm" style={{ color: "rgba(136,146,176,0.5)" }}>
         No account?{" "}
-        <Link href="/register" className="text-brand font-semibold hover:underline">
-          Register free
+        <Link href="/register" className="font-semibold transition-colors" style={{ color: "#6c8aff" }}>
+          Create one free
         </Link>
       </p>
     </form>

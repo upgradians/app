@@ -1,179 +1,183 @@
 import Link from "next/link";
-
-const FLOATERS = [
-  { text: "const ai = await upgradian.build()", pos: "left-[4%] top-[32%]", delay: "0.9s" },
-  { text: "rank: 'Legend' ✓",                  pos: "right-[6%] top-[28%]", delay: "1.05s" },
-  { text: "offer.status = 'accepted' 🎉",       pos: "left-[2%] bottom-[32%]", delay: "1.2s" },
-  { text: "streak: 🔥 42 days",                 pos: "right-[4%] bottom-[36%]", delay: "1.35s" },
-];
+import { ArrowRight, Code2, Trophy, Briefcase, Sparkles, Bot } from "lucide-react";
 
 interface HeroSectionProps {
   isAuthenticated: boolean;
 }
 
+const STATS = [
+  { value: "50K+",  label: "Students" },
+  { value: "500+",  label: "Challenges" },
+  { value: "1.2K+", label: "Placed" },
+  { value: "98%",   label: "Satisfaction" },
+];
+
+const FEATURES = [
+  { icon: Code2,    label: "500+ DSA Challenges" },
+  { icon: Bot,      label: "AI Mock Interviews"  },
+  { icon: Trophy,   label: "Live Contests"        },
+  { icon: Briefcase,label: "Real Internships"     },
+];
+
 export function HeroSection({ isAuthenticated }: HeroSectionProps) {
   return (
-    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-[#09090e] pt-16">
-      {/* Grid background */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(217,119,87,0.045) 1px,transparent 1px),linear-gradient(90deg,rgba(217,119,87,0.045) 1px,transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
-      />
+    <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden bg-[#000008] pt-16">
 
-      {/* Primary radial glow — top */}
+      {/* Dot grid */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background:
-            "radial-gradient(ellipse 90% 60% at 50% -5%,rgba(217,119,87,0.2) 0%,transparent 65%)",
-        }}
-      />
-      {/* Secondary glow — bottom-right accent */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 50% 40% at 85% 80%,rgba(96,165,250,0.07) 0%,transparent 60%)",
+          backgroundImage: "radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
         }}
       />
 
-      {/* Floating code labels — xl only */}
-      {FLOATERS.map((f) => (
-        <div
-          key={f.text}
-          className={`absolute hidden xl:block font-mono text-xs select-none pointer-events-none ${f.pos}`}
-          style={{
-            color: "rgba(217,119,87,0.4)",
-            opacity: 0,
-            animation: "fadeIn 1s ease forwards",
-            animationDelay: f.delay,
-          }}
-        >
-          {f.text}
-        </div>
-      ))}
+      {/* Glows */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(67,97,238,0.18) 0%, transparent 70%)" }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 40% at 90% 90%, rgba(124,58,237,0.12) 0%, transparent 60%)" }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 40% 30% at 10% 80%, rgba(6,182,212,0.07) 0%, transparent 60%)" }} />
 
+      {/* Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center py-20">
+
         {/* Badge */}
         <div
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#D97757]/25 bg-[#D97757]/[0.08] mb-8"
-          style={{ opacity: 0, animation: "fadeUp 0.65s cubic-bezier(0.22,1,0.36,1) forwards" }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border mb-8 text-xs font-semibold tracking-wide"
+          style={{
+            background: "rgba(67,97,238,0.1)",
+            borderColor: "rgba(67,97,238,0.3)",
+            color: "#6c8aff",
+            opacity: 0,
+            animation: "fadeUp 0.6s cubic-bezier(0.22,1,0.36,1) forwards",
+          }}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-[#D97757] animate-pulse" />
-          <span className="text-[#D97757] text-xs font-semibold tracking-wide">
-            India&apos;s #1 AI-Powered Developer Platform
-          </span>
+          <Sparkles className="w-3.5 h-3.5" />
+          India&apos;s #1 AI-Powered Developer Platform
         </div>
 
         {/* Headline */}
         <h1
-          className="text-5xl sm:text-6xl lg:text-[5.5rem] font-black tracking-tight leading-[1.05] text-white mb-6"
+          className="text-5xl sm:text-6xl lg:text-[5.25rem] font-black tracking-tight leading-[1.04] text-white mb-6"
           style={{
             opacity: 0,
             animation: "fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards",
             animationDelay: "0.1s",
           }}
         >
-          Building{" "}
-          <span
-            style={{
-              backgroundImage: "linear-gradient(135deg,#D97757,#f0a882)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            AI Products.
-          </span>
+          Build the Future.
           <br className="hidden sm:block" />{" "}
-          Empowering{" "}
           <span
             style={{
-              backgroundImage: "linear-gradient(135deg,#60a5fa,#c084fc)",
+              backgroundImage: "linear-gradient(135deg, #6c8aff 0%, #a78bfa 50%, #67e8f9 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}
           >
-            Future Developers.
+            Get Hired Faster.
           </span>
         </h1>
 
-        {/* Subheadline */}
+        {/* Sub */}
         <p
-          className="text-base sm:text-lg lg:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed mb-10"
+          className="text-base sm:text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed mb-10"
           style={{
+            color: "rgba(136,146,176,0.9)",
             opacity: 0,
             animation: "fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards",
             animationDelay: "0.2s",
           }}
         >
-          Practice DSA. Compete in contests. Land real internships.
+          Practice DSA. Compete globally. Land real internships.
           <br className="hidden sm:block" />
-          Your complete journey from student to hired developer — powered by AI.
+          The complete AI-powered journey from student to hired developer.
         </p>
 
-        {/* CTA buttons */}
+        {/* CTAs */}
         <div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14"
           style={{
             opacity: 0,
             animation: "fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards",
-            animationDelay: "0.32s",
+            animationDelay: "0.3s",
           }}
         >
           <Link
             href={isAuthenticated ? "/arena" : "/register"}
-            className="group w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-[#D97757] text-white text-sm font-bold transition-all hover:bg-[#C96442] hover:shadow-[0_0_40px_rgba(217,119,87,0.4)] hover:-translate-y-0.5 active:scale-95"
+            className="group w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+            style={{
+              background: "linear-gradient(135deg, #4361ee, #7c3aed)",
+              boxShadow: "0 0 0 1px rgba(67,97,238,0.4), 0 8px 32px rgba(67,97,238,0.35)",
+            }}
           >
             Start Learning Free
-            <svg
-              className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-            </svg>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <Link
             href="/internships"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border border-white/10 text-white/80 text-sm font-semibold transition-all hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border text-white/70 text-sm font-semibold transition-all duration-200 hover:text-white hover:border-white/20 hover:bg-white/[0.04]"
+            style={{ borderColor: "rgba(255,255,255,0.1)" }}
           >
             Explore Internships
           </Link>
         </div>
 
-        {/* Stats row */}
+        {/* Feature pills */}
         <div
-          className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 max-w-2xl mx-auto"
+          className="flex flex-wrap items-center justify-center gap-3 mb-14"
           style={{
             opacity: 0,
             animation: "fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards",
-            animationDelay: "0.46s",
+            animationDelay: "0.4s",
           }}
         >
-          {[
-            { value: "50K+", label: "Students Trained" },
-            { value: "200+", label: "Projects Built" },
-            { value: "1.2K+", label: "Internships Placed" },
-            { value: "98%", label: "Satisfaction" },
-          ].map(({ value, label }) => (
-            <div key={label} className="text-center">
-              <div className="text-2xl sm:text-3xl font-black text-white mb-1">{value}</div>
-              <div className="text-xs text-white/35 uppercase tracking-wider font-medium">{label}</div>
+          {FEATURES.map(({ icon: Icon, label }) => (
+            <div
+              key={label}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "rgba(255,255,255,0.55)",
+              }}
+            >
+              <Icon className="w-3.5 h-3.5" style={{ color: "#6c8aff" }} />
+              {label}
+            </div>
+          ))}
+        </div>
+
+        {/* Stats strip */}
+        <div
+          className="grid grid-cols-2 sm:grid-cols-4 gap-px rounded-2xl overflow-hidden"
+          style={{
+            opacity: 0,
+            animation: "fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards",
+            animationDelay: "0.5s",
+            background: "rgba(255,255,255,0.06)",
+          }}
+        >
+          {STATS.map(({ value, label }) => (
+            <div key={label} className="flex flex-col items-center py-6 px-4" style={{ background: "#000008" }}>
+              <div
+                className="text-2xl sm:text-3xl font-black mb-1"
+                style={{
+                  backgroundImage: "linear-gradient(135deg, #6c8aff, #a78bfa)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {value}
+              </div>
+              <div className="text-xs font-medium" style={{ color: "rgba(136,146,176,0.7)" }}>{label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Bottom gradient fade into next section */}
-      <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#09090e] to-transparent pointer-events-none" />
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 inset-x-0 h-32 pointer-events-none" style={{ background: "linear-gradient(to top, #000008, transparent)" }} />
     </section>
   );
 }

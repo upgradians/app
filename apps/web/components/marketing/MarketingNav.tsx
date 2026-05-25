@@ -2,140 +2,125 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Zap, Menu, X, ArrowRight } from "lucide-react";
 
 interface MarketingNavProps {
   isAuthenticated: boolean;
 }
 
+const NAV_LINKS = [
+  { href: "#how-it-works", label: "How It Works" },
+  { href: "#services",     label: "Services"     },
+  { href: "#internships",  label: "Internships"  },
+  { href: "#learning",     label: "Platform"     },
+  { href: "#about",        label: "Testimonials" },
+];
+
 export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
   const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]         = useState(false);
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
+    const fn = () => setScrolled(window.scrollY > 32);
     fn();
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  // Lock body scroll while mobile menu is open
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  // Close on ESC
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  const navLinks = [
-    ["#how-it-works", "How It Works"],
-    ["#services", "Services"],
-    ["#internships", "Internships"],
-    ["#learning", "Learning"],
-    ["#about", "Testimonials"],
-  ];
-
   return (
     <nav
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
         scrolled || open
-          ? "bg-[#09090e]/95 backdrop-blur-md border-b border-white/[0.06]"
+          ? "bg-[#000008]/90 backdrop-blur-xl border-b border-white/[0.06]"
           : "bg-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        {/* Logo */}
         <Link
           href="/"
-          className="text-xl font-extrabold tracking-tight text-white flex-shrink-0 hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-white flex-shrink-0 hover:opacity-80 transition-opacity"
         >
-          Upgradian<span className="text-[#D97757]">.</span>Tech
+          <div className="w-7 h-7 rounded-lg bg-gradient-brand flex items-center justify-center flex-shrink-0">
+            <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
+          </div>
+          Upgradian<span className="text-brand">.</span>Tech
         </Link>
 
-        {/* Desktop nav links */}
+        {/* Desktop links */}
         <div className="hidden md:flex items-center gap-1">
-          {navLinks.map(([href, label]) => (
+          {NAV_LINKS.map(({ href, label }) => (
             <a
               key={href}
               href={href}
-              className="px-3 py-2 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/5 transition-all"
+              className="px-3 py-2 rounded-lg text-sm font-medium text-white/50 hover:text-white hover:bg-white/[0.05] transition-all duration-200"
             >
               {label}
             </a>
           ))}
         </div>
 
+        {/* Actions */}
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
             <Link
               href="/dashboard"
-              className="px-4 py-2 rounded-xl bg-[#D97757] text-white text-sm font-semibold hover:bg-[#C96442] transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-brand text-white text-sm font-semibold transition-all hover:shadow-brand hover:-translate-y-px active:scale-95"
             >
-              Dashboard →
+              Dashboard <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           ) : (
             <>
               <Link
                 href="/login"
-                className="hidden sm:block text-sm text-white/60 hover:text-white transition-colors"
+                className="hidden sm:block text-sm font-medium text-white/50 hover:text-white transition-colors"
               >
                 Sign in
               </Link>
               <Link
                 href="/register"
-                className="px-4 py-2 rounded-xl bg-[#D97757] text-white text-sm font-semibold hover:bg-[#C96442] transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-brand text-white text-sm font-semibold transition-all hover:shadow-brand hover:-translate-y-px active:scale-95"
               >
-                Get Started
+                Get Started <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </>
           )}
 
-          {/* Hamburger */}
           <button
-            onClick={() => setOpen((v) => !v)}
-            className="md:hidden p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all"
+            onClick={() => setOpen(v => !v)}
+            className="md:hidden p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.05] transition-all"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
           >
-            <svg
-              className="w-5 h-5 transition-transform duration-200"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              {open ? (
-                <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
+            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile menu — animated slide-down */}
+      {/* Mobile menu */}
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          open ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="border-t border-white/[0.06] px-4 py-3 space-y-1 bg-[#09090e]">
-          {navLinks.map(([href, label]) => (
+        <div className="border-t border-white/[0.06] px-4 py-4 space-y-1 bg-[#000008]">
+          {NAV_LINKS.map(({ href, label }) => (
             <a
               key={href}
               href={href}
               onClick={() => setOpen(false)}
-              className="flex px-3 py-2.5 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/5 transition-all"
+              className="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/[0.05] transition-all"
             >
               {label}
             </a>
@@ -144,7 +129,7 @@ export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
             <Link
               href="/login"
               onClick={() => setOpen(false)}
-              className="flex px-3 py-2.5 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/5 transition-all"
+              className="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/[0.05] transition-all"
             >
               Sign in
             </Link>

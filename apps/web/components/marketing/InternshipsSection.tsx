@@ -1,13 +1,14 @@
 import Link from "next/link";
+import { Monitor, Bot, BarChart3, Palette, Megaphone, Server, Check, ArrowRight } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const PROGRAMS = [
-  { icon: "💻", title: "Full Stack Development", duration: "3 months", spots: "120+ spots", color: "#3b82f6" },
-  { icon: "🤖", title: "AI / Machine Learning", duration: "3 months", spots: "80+ spots", color: "#8b5cf6" },
-  { icon: "📊", title: "Data Science", duration: "3 months", spots: "60+ spots", color: "#06b6d4" },
-  { icon: "🎨", title: "UI / UX Design", duration: "2 months", spots: "40+ spots", color: "#ec4899" },
-  { icon: "📱", title: "Digital Marketing", duration: "2 months", spots: "50+ spots", color: "#10b981" },
-  { icon: "🔧", title: "DevOps & Cloud", duration: "3 months", spots: "30+ spots", color: "#f59e0b" },
+  { icon: Monitor,   title: "Full Stack Development", duration: "3 months", spots: "120+ spots", accent: "#4361ee" },
+  { icon: Bot,       title: "AI / Machine Learning",  duration: "3 months", spots: "80+ spots",  accent: "#7c3aed" },
+  { icon: BarChart3, title: "Data Science",           duration: "3 months", spots: "60+ spots",  accent: "#06b6d4" },
+  { icon: Palette,   title: "UI / UX Design",         duration: "2 months", spots: "40+ spots",  accent: "#ec4899" },
+  { icon: Megaphone, title: "Digital Marketing",      duration: "2 months", spots: "50+ spots",  accent: "#10b981" },
+  { icon: Server,    title: "DevOps & Cloud",         duration: "3 months", spots: "30+ spots",  accent: "#f59e0b" },
 ];
 
 const PERKS = [
@@ -21,80 +22,72 @@ const PERKS = [
 
 export function InternshipsSection() {
   return (
-    <section id="internships" className="py-24 bg-[#0e0e15]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <section id="internships" className="relative py-32 overflow-hidden" style={{ background: "#07070f" }}>
+      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex flex-col lg:flex-row gap-16 items-start">
-          {/* Left */}
+
+          {/* Left — sticky */}
           <div className="lg:w-2/5 lg:sticky lg:top-24">
             <ScrollReveal>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#D97757]/25 bg-[#D97757]/[0.08] text-[#D97757] text-xs font-semibold mb-6 uppercase tracking-widest">
-              Internship Programs
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight mb-5">
-              Real Projects.
-              <br />
-              <span
-                style={{
-                  backgroundImage: "linear-gradient(135deg,#D97757,#f0a882)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold mb-6 uppercase tracking-widest" style={{ borderColor: "rgba(67,97,238,0.3)", background: "rgba(67,97,238,0.08)", color: "#6c8aff" }}>
+                Internship Programs
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight mb-5">
+                Real Projects.
+                <br />
+                <span style={{ backgroundImage: "linear-gradient(135deg, #6c8aff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                  Real Experience.
+                </span>
+              </h2>
+              <p className="leading-relaxed mb-8 text-sm sm:text-base" style={{ color: "rgba(136,146,176,0.75)" }}>
+                Our programs connect freshers with live projects. Work alongside senior engineers, build products used by real users, and launch your career with confidence.
+              </p>
+              <ul className="space-y-3 mb-8">
+                {PERKS.map(perk => (
+                  <li key={perk} className="flex items-center gap-3 text-sm" style={{ color: "rgba(136,146,176,0.7)" }}>
+                    <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(67,97,238,0.15)", border: "1px solid rgba(67,97,238,0.3)" }}>
+                      <Check className="w-3 h-3" style={{ color: "#6c8aff" }} strokeWidth={2.5} />
+                    </span>
+                    {perk}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/register"
+                className="group inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+                style={{ background: "linear-gradient(135deg, #4361ee, #7c3aed)", boxShadow: "0 0 0 1px rgba(67,97,238,0.4), 0 8px 32px rgba(67,97,238,0.25)" }}
               >
-                Real Experience.
-              </span>
-            </h2>
-            <p className="text-white/45 leading-relaxed mb-8 text-sm sm:text-base">
-              Our programs connect freshers with live projects. Work alongside senior engineers,
-              build products used by real users, and launch your career with confidence.
-            </p>
-            <ul className="space-y-3 mb-8">
-              {PERKS.map((perk) => (
-                <li key={perk} className="flex items-center gap-3 text-sm text-white/60">
-                  <span
-                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(217,119,87,0.15)", border: "1px solid rgba(217,119,87,0.3)" }}
-                  >
-                    <svg className="w-3 h-3" style={{ color: "#D97757" }} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                  </span>
-                  {perk}
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-bold transition-all hover:bg-[#C96442] hover:shadow-[0_0_30px_rgba(217,119,87,0.3)]"
-              style={{ background: "#D97757" }}
-            >
-              Apply for Internship →
-            </Link>
+                Apply for Internship
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
             </ScrollReveal>
           </div>
 
-          {/* Right: Program grid */}
+          {/* Right — program grid */}
           <div className="lg:w-3/5 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {PROGRAMS.map((p, i) => (
-              <ScrollReveal key={p.title} delay={i * 0.07}>
-              <div
-                className="rounded-2xl p-5 group hover:-translate-y-0.5 transition-all duration-300 border border-white/[0.07] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14] h-full"
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-4 group-hover:scale-110 transition-transform"
-                  style={{ background: `${p.color}25`, border: `1px solid ${p.color}40` }}
-                >
-                  {p.icon}
-                </div>
-                <h3 className="text-sm font-bold text-white mb-2">{p.title}</h3>
-                <div className="flex items-center gap-2 text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
-                  <span>⏱ {p.duration}</span>
-                  <span>·</span>
-                  <span>👥 {p.spots}</span>
-                </div>
-              </div>
-              </ScrollReveal>
-            ))}
+            {PROGRAMS.map((p, i) => {
+              const Icon = p.icon;
+              return (
+                <ScrollReveal key={p.title} delay={i * 0.07}>
+                  <div
+                    className="rounded-2xl p-5 h-full transition-all duration-300 hover:-translate-y-0.5 group"
+                    style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}
+                  >
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110" style={{ background: `${p.accent}18`, border: `1px solid ${p.accent}30` }}>
+                      <Icon className="w-5 h-5" style={{ color: p.accent }} strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-sm font-bold text-white mb-2">{p.title}</h3>
+                    <div className="flex items-center gap-2 text-xs" style={{ color: "rgba(136,146,176,0.5)" }}>
+                      <span>{p.duration}</span>
+                      <span>·</span>
+                      <span>{p.spots}</span>
+                    </div>
+                  </div>
+                </ScrollReveal>
+              );
+            })}
           </div>
         </div>
       </div>

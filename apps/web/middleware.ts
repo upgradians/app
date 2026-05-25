@@ -6,6 +6,9 @@ const AUTH_ROUTES     = ["/login", "/register"];
 const RECRUITER_PATHS = ["/recruiter"];
 const ADMIN_PATHS     = ["/admin"];
 
+// Only this UID can access /admin routes regardless of database role.
+const ADMIN_UID = "106de8ef-19ea-47b1-8217-476461f4060f";
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -44,12 +47,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Role-based protection for recruiter and admin sections
-  const needsRoleCheck =
-    RECRUITER_PATHS.some(p => pathname.startsWith(p)) ||
-    ADMIN_PATHS.some(p => pathname.startsWith(p));
+  // Admin route protection — UID-first check, no DB query needed
+  if (user && ADMIN_PATHS.some(p => pathname.startsWith(p))) {
+    if (user.id !== ADMIN_UID) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+  }
 
-  if (user && needsRoleCheck) {
+  // Recruiter route protection
+  if (user && RECRUITER_PATHS.some(p => pathname.startsWith(p))) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -57,11 +63,7 @@ export async function middleware(request: NextRequest) {
       .single();
 
     const role = profile?.role ?? "student";
-
-    if (ADMIN_PATHS.some(p => pathname.startsWith(p)) && role !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-    if (RECRUITER_PATHS.some(p => pathname.startsWith(p)) && role !== "recruiter" && role !== "admin") {
+    if (role !== "recruiter" && role !== "admin" && user.id !== ADMIN_UID) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
