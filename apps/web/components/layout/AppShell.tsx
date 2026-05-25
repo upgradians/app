@@ -129,7 +129,7 @@ export function AppShell({ profile, children }: AppShellProps) {
       {/* ── Main ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="h-16 flex items-center justify-between gap-3 px-4 sm:px-6 border-b border-[var(--border)] bg-[var(--bg-1)]/80 backdrop-blur-md">
+        <header className="h-16 flex items-center justify-between gap-3 px-4 sm:px-6 border-b border-[var(--border)] bg-[#09090e]/90 backdrop-blur-md">
           {/* Left: hamburger (mobile) */}
           <button
             onClick={() => setSidebarOpen(true)}

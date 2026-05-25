@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@upgradian/ui";
 
@@ -29,9 +30,17 @@ export function RegisterForm() {
     });
     if (error) {
       setError(error.message);
+      toast.error(error.message);
       setLoading(false);
     } else {
-      router.push("/dashboard");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        toast.success("Welcome to Upgradian!");
+        router.push("/dashboard");
+      } else {
+        toast.success("Check your email to confirm your account!");
+        setLoading(false);
+      }
     }
   }
 

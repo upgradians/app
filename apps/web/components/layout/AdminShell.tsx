@@ -122,7 +122,7 @@ export function AdminShell({ adminName, children }: AdminShellProps) {
       {/* ── Main ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="h-14 flex items-center justify-between px-5 border-b border-[var(--border)] bg-[var(--bg-1)]/80 backdrop-blur-md">
+        <header className="h-14 flex items-center justify-between px-5 border-b border-[var(--border)] bg-[#09090e]/90 backdrop-blur-md">
           <button
             onClick={() => setSidebarOpen(true)}
             aria-label="Open admin navigation"

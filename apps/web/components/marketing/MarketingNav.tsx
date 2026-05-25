@@ -13,15 +13,36 @@ export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 20);
+    fn();
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
+  // Lock body scroll while mobile menu is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  // Close on ESC
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
   const navLinks = [
+    ["#how-it-works", "How It Works"],
     ["#services", "Services"],
     ["#internships", "Internships"],
     ["#learning", "Learning"],
-    ["#about", "About"],
+    ["#about", "Testimonials"],
   ];
 
   return (
@@ -33,16 +54,20 @@ export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        <Link href="/" className="text-xl font-extrabold tracking-tight text-white flex-shrink-0">
+        <Link
+          href="/"
+          className="text-xl font-extrabold tracking-tight text-white flex-shrink-0 hover:opacity-80 transition-opacity"
+        >
           Upgradian<span className="text-[#D97757]">.</span>Tech
         </Link>
 
+        {/* Desktop nav links */}
         <div className="hidden md:flex items-center gap-1">
           {navLinks.map(([href, label]) => (
             <a
               key={href}
               href={href}
-              className="px-4 py-2 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/5 transition-all"
+              className="px-3 py-2 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/5 transition-all"
             >
               {label}
             </a>
@@ -59,7 +84,10 @@ export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
             </Link>
           ) : (
             <>
-              <Link href="/login" className="hidden sm:block text-sm text-white/60 hover:text-white transition-colors">
+              <Link
+                href="/login"
+                className="hidden sm:block text-sm text-white/60 hover:text-white transition-colors"
+              >
                 Sign in
               </Link>
               <Link
@@ -70,12 +98,21 @@ export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
               </Link>
             </>
           )}
+
+          {/* Hamburger */}
           <button
             onClick={() => setOpen((v) => !v)}
             className="md:hidden p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all"
             aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className="w-5 h-5 transition-transform duration-200"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               {open ? (
                 <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
               ) : (
@@ -86,8 +123,13 @@ export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
         </div>
       </div>
 
-      {open && (
-        <div className="md:hidden border-t border-white/[0.06] px-4 py-3 space-y-1 bg-[#09090e]">
+      {/* Mobile menu — animated slide-down */}
+      <div
+        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+          open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="border-t border-white/[0.06] px-4 py-3 space-y-1 bg-[#09090e]">
           {navLinks.map(([href, label]) => (
             <a
               key={href}
@@ -108,7 +150,7 @@ export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
             </Link>
           )}
         </div>
-      )}
+      </div>
     </nav>
   );
 }

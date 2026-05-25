@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Sign In | Upgradian" };
 export default function LoginPage() {
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4"
+      className="relative min-h-screen flex items-center justify-center px-4"
       style={{ background: "#09090e" }}
     >
       {/* Background glow */}

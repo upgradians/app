@@ -32,13 +32,24 @@
 
 /* ─── Base ───────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+
+html {
+  scroll-behavior: smooth;
+  /* Prevent horizontal overflow bleed-through on all pages */
+  overflow-x: hidden;
+}
+
 body {
   font-family: var(--font-jakarta), system-ui, sans-serif;
   background: var(--bg-1);
   color: var(--text-1);
   -webkit-font-smoothing: antialiased;
-  transition: background .3s, color .3s;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Overflow-x on body as well — belt and suspenders */
+  overflow-x: hidden;
+  /* Do NOT add background/color transition here — it causes FOUC on every
+     navigation event before hydration completes. */
 }
 
 /* ─── Scrollbar ──────────────────────────────────────────────────────────────── */
@@ -54,3 +65,51 @@ body {
 
 /* ─── Code font ──────────────────────────────────────────────────────────────── */
 code, pre, .font-mono { font-family: var(--font-mono), "Fira Code", "Courier New", monospace; }
+
+/* ─── Keyframes ──────────────────────────────────────────────────────────────── */
+/*
+  These are defined here (not only in tailwind.config.js) because several
+  server components (HeroSection) reference them via inline styles
+  e.g. style={{ animation: "fadeUp 0.7s …" }}. Tailwind only emits @keyframes
+  when the corresponding animate-* class appears in scanned content. Since the
+  hero uses raw animation names in inline styles the keyframes must live in CSS.
+*/
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.3); }
+  50%      { transform: scaleY(1); }
+}
+
+/* ─── Reduced motion ─────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

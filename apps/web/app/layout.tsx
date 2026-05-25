@@ -36,8 +36,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={jakarta.variable}>
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <body className={`${jakarta.variable} antialiased`}>
         {/* Skip-to-content for keyboard/screen-reader users */}
         <a
           href="#main-content"

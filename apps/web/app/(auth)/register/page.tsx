@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Create Account | Upgradian" };
 export default function RegisterPage() {
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4 py-16"
+      className="relative min-h-screen flex items-center justify-center px-4 py-16"
       style={{ background: "#09090e" }}
     >
       {/* Background glow */}
