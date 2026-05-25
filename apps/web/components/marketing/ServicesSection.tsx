@@ -1,34 +1,62 @@
-import { Bot, Globe, Zap, Rocket } from "lucide-react";
+import { Bot, Globe, Rocket, Smartphone, Database, Cloud, Workflow } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const SERVICES = [
   {
     icon: Bot,
     title: "AI Product Development",
-    desc: "We build cutting-edge AI-powered SaaS products — from LLM integrations to computer vision to intelligent automation systems.",
-    tags: ["LLMs", "Computer Vision", "MLOps"],
+    desc: "LLM integrations, RAG pipelines, computer vision, and intelligent automation. We build AI products that solve real business problems.",
+    tags: ["LLMs", "RAG", "Computer Vision"],
     accent: "#7c3aed",
   },
   {
     icon: Globe,
-    title: "Web & Mobile Platforms",
-    desc: "Full-stack web apps and React Native mobile apps built on modern stacks — Next.js, Node.js, Supabase, and more.",
-    tags: ["Next.js", "React Native", "Supabase"],
+    title: "SaaS Development",
+    desc: "Full-stack SaaS platforms with multi-tenant architecture, billing integrations, admin dashboards, and scalable backend APIs.",
+    tags: ["Next.js", "Node.js", "Supabase"],
     accent: "#4361ee",
   },
   {
-    icon: Zap,
-    title: "Automation Systems",
-    desc: "Intelligent workflow automation, RPA bots, and API integrations that eliminate manual work and cut operational costs.",
-    tags: ["RPA", "Workflows", "Integrations"],
+    icon: Globe,
+    title: "Web Application Development",
+    desc: "High-performance web apps built on modern stacks — React, Next.js, TypeScript — with pixel-perfect UI and rock-solid infrastructure.",
+    tags: ["React", "Next.js", "TypeScript"],
     accent: "#06b6d4",
   },
   {
-    icon: Rocket,
-    title: "Startup Tech Solutions",
-    desc: "We partner with early-stage startups to architect scalable systems, build MVPs fast, and grow their engineering team.",
-    tags: ["MVP", "Architecture", "Scale"],
+    icon: Smartphone,
+    title: "Mobile App Development",
+    desc: "Cross-platform iOS and Android apps built with React Native. Native performance, shared codebase, rapid iteration.",
+    tags: ["React Native", "iOS", "Android"],
+    accent: "#10b981",
+  },
+  {
+    icon: Database,
+    title: "ERP & CRM Systems",
+    desc: "Custom enterprise software — CRM, ERP, inventory, HR, and workflow management systems tailored to your business processes.",
+    tags: ["Enterprise", "Workflow", "ERP"],
     accent: "#f59e0b",
+  },
+  {
+    icon: Cloud,
+    title: "Cloud & DevOps",
+    desc: "Cloud infrastructure design, Kubernetes orchestration, CI/CD pipelines, and SRE practices for 99.9% uptime.",
+    tags: ["AWS", "GCP", "Kubernetes"],
+    accent: "#06b6d4",
+  },
+  {
+    icon: Workflow,
+    title: "AI Automation Systems",
+    desc: "Intelligent workflow automation, RPA bots, and API integrations that eliminate manual work and cut operational costs by up to 70%.",
+    tags: ["RPA", "Automation", "APIs"],
+    accent: "#ec4899",
+  },
+  {
+    icon: Rocket,
+    title: "Startup MVP Development",
+    desc: "We partner with early-stage startups to architect and build MVPs fast — validated, deployed, and investor-ready in 4-8 weeks.",
+    tags: ["MVP", "Rapid Dev", "Go-to-Market"],
+    accent: "#6c8aff",
   },
 ];
 
@@ -40,16 +68,16 @@ export function ServicesSection() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
         <ScrollReveal className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold mb-5 uppercase tracking-widest" style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.45)" }}>
-            What We Build
+            Our Services
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-4">
-            Building Tomorrow&apos;s{" "}
+            End-to-End Software{" "}
             <span style={{ backgroundImage: "linear-gradient(135deg, #6c8aff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-              Technology
+              Engineering
             </span>
           </h2>
           <p className="text-white/35 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
-            From AI models to mobile apps — complete technology solutions for startups, scale-ups, and enterprises.
+            From AI models to enterprise platforms — complete technology solutions built by senior engineers who care about quality.
           </p>
         </ScrollReveal>
 
@@ -57,11 +85,9 @@ export function ServicesSection() {
           {SERVICES.map((s, i) => {
             const Icon = s.icon;
             return (
-              <ScrollReveal key={s.title} delay={i * 0.08}>
-                <div
-                  className="relative rounded-2xl p-6 h-full transition-all duration-300 hover:-translate-y-1 hover:bg-white/[0.045] hover:border-white/15 group cursor-default border border-white/[0.07] bg-white/[0.025]"
-                >
-                  {/* Subtle top glow line */}
+              <ScrollReveal key={s.title} delay={i * 0.06}>
+                <div className="relative rounded-2xl p-6 h-full transition-all duration-300 hover:-translate-y-1 hover:bg-white/[0.045] hover:border-white/15 group cursor-default border border-white/[0.07] bg-white/[0.025]">
+                  {/* Top accent glow on hover */}
                   <div className="absolute inset-x-0 top-0 h-px rounded-t-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(90deg, transparent, ${s.accent}60, transparent)` }} />
 
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110" style={{ background: `${s.accent}18`, border: `1px solid ${s.accent}30` }}>

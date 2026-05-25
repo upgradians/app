@@ -3,6 +3,8 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import { Providers } from "./providers";
+import { ChatWidget } from "@/components/chat/ChatWidget";
+import { WhatsAppButton } from "@/components/marketing/WhatsAppButton";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -12,12 +14,12 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: { default: "Upgradian Technology", template: "%s | Upgradian" },
-  description: "Learn. Practice. Compete. Get Hired. India's AI-powered coding and placement platform.",
-  keywords: ["coding platform", "coding challenges", "internships", "AI interview", "tech jobs India"],
+  description: "Upgradian Technology — AI product development and software engineering company. We build SaaS, web apps, mobile apps, AI solutions, and developer tools.",
+  keywords: ["AI development", "software engineering", "SaaS development", "mobile apps", "coding platform", "internships India"],
   authors: [{ name: "Upgradian Technology" }],
   openGraph: {
-    title: "Upgradian Technology — Learn. Practice. Compete. Get Hired.",
-    description: "AI-powered coding, internship and placement platform for Indian developers.",
+    title: "Upgradian Technology — AI Engineering & Software Development",
+    description: "Building AI Products & Scalable Software for startups and enterprises.",
     type: "website",
     locale: "en_IN",
   },
@@ -47,6 +49,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <Providers>
           {children}
+          <WhatsAppButton />
+          <ChatWidget />
           <Toaster
             position="bottom-right"
             toastOptions={{

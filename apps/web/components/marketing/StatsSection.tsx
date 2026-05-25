@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { GraduationCap, Rocket, Briefcase, Code2, Star, Handshake } from "lucide-react";
+import { Rocket, Briefcase, Code2, Star, Handshake, Users } from "lucide-react";
 import { motion } from "framer-motion";
 
 function useCountUp(target: number, duration = 1800) {
@@ -36,12 +36,12 @@ function useCountUp(target: number, duration = 1800) {
 }
 
 const STATS = [
-  { value: 50000, suffix: "+", label: "Students Trained",    icon: GraduationCap, accent: "#4361ee" },
-  { value: 200,   suffix: "+", label: "Projects Shipped",    icon: Rocket,        accent: "#7c3aed" },
-  { value: 1200,  suffix: "+", label: "Internships Placed",  icon: Briefcase,     accent: "#06b6d4" },
-  { value: 500,   suffix: "+", label: "Coding Challenges",   icon: Code2,         accent: "#f59e0b" },
-  { value: 98,    suffix: "%", label: "Satisfaction Rate",   icon: Star,          accent: "#10b981" },
-  { value: 15,    suffix: "+", label: "Industry Partners",   icon: Handshake,     accent: "#6c8aff" },
+  { value: 200,  suffix: "+", label: "Projects Delivered",   icon: Rocket,    accent: "#4361ee" },
+  { value: 15,   suffix: "+", label: "Enterprise Clients",   icon: Briefcase, accent: "#7c3aed" },
+  { value: 50000,suffix: "+", label: "Developer Community",  icon: Users,     accent: "#06b6d4" },
+  { value: 500,  suffix: "+", label: "Coding Challenges",    icon: Code2,     accent: "#f59e0b" },
+  { value: 98,   suffix: "%", label: "Client Satisfaction",  icon: Star,      accent: "#10b981" },
+  { value: 20,   suffix: "+", label: "Technology Partners",  icon: Handshake, accent: "#6c8aff" },
 ];
 
 function StatCard({ value, suffix, label, icon: Icon, accent }: typeof STATS[number]) {
@@ -81,14 +81,13 @@ export function StatsSection() {
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
-          {/* Top line glow */}
           <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(67,97,238,0.4), rgba(124,58,237,0.4), transparent)" }} />
 
           <div className="px-8 pt-10 pb-4 text-center">
             <h2 className="text-2xl sm:text-3xl font-black text-white">
-              Trusted by Thousands of{" "}
+              Trusted by Engineers &amp;{" "}
               <span style={{ backgroundImage: "linear-gradient(135deg, #6c8aff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                Developers
+                Businesses Worldwide
               </span>
             </h2>
           </div>

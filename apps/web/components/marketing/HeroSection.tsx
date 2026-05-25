@@ -1,22 +1,22 @@
 import Link from "next/link";
-import { ArrowRight, Code2, Trophy, Briefcase, Sparkles, Bot } from "lucide-react";
+import { ArrowRight, Cpu, Globe, Layers, Zap, Building2, Code2 } from "lucide-react";
 
 interface HeroSectionProps {
   isAuthenticated: boolean;
 }
 
 const STATS = [
-  { value: "50K+",  label: "Students" },
-  { value: "500+",  label: "Challenges" },
-  { value: "1.2K+", label: "Placed" },
-  { value: "98%",   label: "Satisfaction" },
+  { value: "200+",  label: "Projects Shipped"  },
+  { value: "15+",   label: "Enterprise Clients" },
+  { value: "50K+",  label: "Developer Community"},
+  { value: "3+",    label: "Years Building"     },
 ];
 
-const FEATURES = [
-  { icon: Code2,    label: "500+ DSA Challenges" },
-  { icon: Bot,      label: "AI Mock Interviews"  },
-  { icon: Trophy,   label: "Live Contests"        },
-  { icon: Briefcase,label: "Real Internships"     },
+const CAPABILITIES = [
+  { icon: Cpu,      label: "AI Product Dev"     },
+  { icon: Globe,    label: "SaaS Platforms"     },
+  { icon: Layers,   label: "Cloud & DevOps"     },
+  { icon: Code2,    label: "Custom Software"    },
 ];
 
 export function HeroSection({ isAuthenticated }: HeroSectionProps) {
@@ -51,8 +51,8 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
             animation: "fadeUp 0.6s cubic-bezier(0.22,1,0.36,1) forwards",
           }}
         >
-          <Sparkles className="w-3.5 h-3.5" />
-          India&apos;s #1 AI-Powered Developer Platform
+          <Building2 className="w-3.5 h-3.5" />
+          AI Engineering &amp; Software Development Company
         </div>
 
         {/* Headline */}
@@ -64,7 +64,7 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
             animationDelay: "0.1s",
           }}
         >
-          Build the Future.
+          Building AI Products
           <br className="hidden sm:block" />{" "}
           <span
             style={{
@@ -74,7 +74,7 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
               backgroundClip: "text",
             }}
           >
-            Get Hired Faster.
+            &amp; Scalable Software
           </span>
         </h1>
 
@@ -88,9 +88,9 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
             animationDelay: "0.2s",
           }}
         >
-          Practice DSA. Compete globally. Land real internships.
+          We design, engineer, and deploy cutting-edge AI-powered software solutions for startups and enterprises.
           <br className="hidden sm:block" />
-          The complete AI-powered journey from student to hired developer.
+          From MVP to scale — we build the technology that moves your business forward.
         </p>
 
         {/* CTAs */}
@@ -103,26 +103,27 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
           }}
         >
           <Link
-            href={isAuthenticated ? "/arena" : "/register"}
+            href="/#services"
             className="group w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl text-white text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
             style={{
               background: "linear-gradient(135deg, #4361ee, #7c3aed)",
               boxShadow: "0 0 0 1px rgba(67,97,238,0.4), 0 8px 32px rgba(67,97,238,0.35)",
             }}
           >
-            Start Learning Free
+            Explore Services
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <Link
-            href="/internships"
+            href="/contact"
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border text-white/70 text-sm font-semibold transition-all duration-200 hover:text-white hover:border-white/20 hover:bg-white/[0.04]"
             style={{ borderColor: "rgba(255,255,255,0.1)" }}
           >
-            Explore Internships
+            <Zap className="w-4 h-4" />
+            Build With Us
           </Link>
         </div>
 
-        {/* Feature pills */}
+        {/* Capability pills */}
         <div
           className="flex flex-wrap items-center justify-center gap-3 mb-14"
           style={{
@@ -131,7 +132,7 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
             animationDelay: "0.4s",
           }}
         >
-          {FEATURES.map(({ icon: Icon, label }) => (
+          {CAPABILITIES.map(({ icon: Icon, label }) => (
             <div
               key={label}
               className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium"
@@ -145,6 +146,20 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
               {label}
             </div>
           ))}
+          {isAuthenticated && (
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all hover:bg-brand/20"
+              style={{
+                background: "rgba(67,97,238,0.12)",
+                border: "1px solid rgba(67,97,238,0.3)",
+                color: "#6c8aff",
+              }}
+            >
+              Go to Dashboard
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          )}
         </div>
 
         {/* Stats strip */}

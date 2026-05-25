@@ -80,16 +80,16 @@ export function TestimonialsSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-14 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold mb-5 uppercase tracking-widest" style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.4)" }}>
-          Student Stories
+          Developer Stories
         </div>
         <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-          Developers Who{" "}
+          Engineers Who{" "}
           <span style={{ backgroundImage: "linear-gradient(135deg, #6c8aff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-            Made It
+            Levelled Up
           </span>
         </h2>
         <p className="mt-3 max-w-md mx-auto text-sm" style={{ color: "rgba(136,146,176,0.55)" }}>
-          Real students. Real jobs. Real results — from across India.
+          Developers from our ecosystem who landed top engineering roles.
         </p>
       </div>
 

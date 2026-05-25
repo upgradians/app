@@ -1,34 +1,34 @@
 import Link from "next/link";
-import { UserPlus, Code2, Trophy, Briefcase, ArrowRight } from "lucide-react";
+import { Search, Pencil, Cpu, Rocket, ArrowRight } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const STEPS = [
   {
     n: "01",
-    icon: UserPlus,
-    title: "Sign up in 60 seconds",
-    desc: "Create your free account. No credit card. No friction. Start building your developer profile immediately.",
+    icon: Search,
+    title: "Discovery & Strategy",
+    desc: "We start by deeply understanding your business goals, technical constraints, and competitive landscape to define the right solution architecture.",
     accent: "#4361ee",
   },
   {
     n: "02",
-    icon: Code2,
-    title: "Practice real challenges",
-    desc: "Solve 500+ curated DSA problems across 10+ languages. Get AI-powered feedback on every submission.",
+    icon: Pencil,
+    title: "Design & Architecture",
+    desc: "Our engineers design scalable system architectures and intuitive interfaces before writing a single line of code — reducing rework and technical debt.",
     accent: "#7c3aed",
   },
   {
     n: "03",
-    icon: Trophy,
-    title: "Compete and rank up",
-    desc: "Join weekly timed contests, earn XP, and climb from Novice to Legend on the global leaderboard.",
+    icon: Cpu,
+    title: "Engineering & Build",
+    desc: "Agile sprints with full-stack engineers, AI specialists, and QA. We ship production-ready features with automated testing and CI/CD pipelines.",
     accent: "#06b6d4",
   },
   {
     n: "04",
-    icon: Briefcase,
-    title: "Land your offer",
-    desc: "Apply to real internships from partner companies. Get discovered by recruiters hiring directly on the platform.",
+    icon: Rocket,
+    title: "Deploy & Scale",
+    desc: "Cloud-native deployment on AWS, GCP, or Azure. We handle infra, monitoring, and post-launch support so you can focus on growth.",
     accent: "#f59e0b",
   },
 ] as const;
@@ -44,17 +44,17 @@ export function HowItWorks() {
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold mb-5 uppercase tracking-widest"
             style={{ borderColor: "rgba(67,97,238,0.3)", background: "rgba(67,97,238,0.08)", color: "#6c8aff" }}
           >
-            How It Works
+            How We Work
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-4">
-            From Zero to{" "}
+            From Idea to{" "}
             <span style={{ backgroundImage: "linear-gradient(135deg, #6c8aff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-              Hired
+              Production
             </span>{" "}
-            in 4 Steps
+            in Weeks
           </h2>
           <p className="text-white/40 max-w-lg mx-auto text-sm sm:text-base leading-relaxed">
-            A proven path that has helped thousands of Indian students go from beginner to industry-ready in under 6 months.
+            A battle-tested engineering process that delivers working software fast — without cutting corners on quality, security, or scalability.
           </p>
         </ScrollReveal>
 
@@ -65,9 +65,6 @@ export function HowItWorks() {
             const Icon = step.icon;
             return (
               <ScrollReveal key={step.n} delay={i * 0.1} className="flex flex-col items-center text-center group relative">
-                {i < STEPS.length - 1 && (
-                  <div className="sm:hidden absolute -bottom-6 left-1/2 -translate-x-1/2 text-white/10 text-lg">↓</div>
-                )}
                 <div
                   className="relative w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110 flex-shrink-0"
                   style={{ background: `${step.accent}15`, border: `1px solid ${step.accent}30` }}
@@ -86,14 +83,14 @@ export function HowItWorks() {
 
         <ScrollReveal delay={0.35} className="mt-20 text-center">
           <Link
-            href="/register"
+            href="/contact"
             className="group inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-white text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
             style={{ background: "linear-gradient(135deg, #4361ee, #7c3aed)", boxShadow: "0 0 0 1px rgba(67,97,238,0.4), 0 8px 32px rgba(67,97,238,0.3)" }}
           >
-            Start Your Journey Free
+            Start Your Project
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
-          <p className="mt-3 text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>No credit card required · 2-minute setup</p>
+          <p className="mt-3 text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>Free consultation · No commitment</p>
         </ScrollReveal>
       </div>
     </section>

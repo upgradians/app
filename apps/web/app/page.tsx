@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { MarketingNav } from "@/components/marketing/MarketingNav";
-import { HeroSection } from "@/components/marketing/HeroSection";
-import { ServicesSection } from "@/components/marketing/ServicesSection";
-import { HowItWorks } from "@/components/marketing/HowItWorks";
+import { MarketingNav }       from "@/components/marketing/MarketingNav";
+import { HeroSection }        from "@/components/marketing/HeroSection";
+import { HowItWorks }         from "@/components/marketing/HowItWorks";
+import { ServicesSection }    from "@/components/marketing/ServicesSection";
 import { InternshipsSection } from "@/components/marketing/InternshipsSection";
-import { LearningSection } from "@/components/marketing/LearningSection";
-import { StatsSection } from "@/components/marketing/StatsSection";
+import { LearningSection }    from "@/components/marketing/LearningSection";
+import { StatsSection }       from "@/components/marketing/StatsSection";
 import { TestimonialsSection } from "@/components/marketing/TestimonialsSection";
-import { MarketingFooter } from "@/components/marketing/MarketingFooter";
+import { MarketingFooter }    from "@/components/marketing/MarketingFooter";
 
 export const metadata: Metadata = {
-  title: "Upgradian Technology – Building AI Products. Empowering Future Developers.",
+  title: "Upgradian Technology – AI Engineering & Software Development",
   description:
-    "India's AI-powered platform for coding practice, internships, contests, and placement. Practice DSA, compete globally, and get hired.",
+    "Upgradian Technology is an AI product development and software engineering company. We build SaaS platforms, web apps, mobile apps, and AI-powered solutions for startups and enterprises.",
   openGraph: {
     title: "Upgradian Technology",
-    description: "Building AI Products. Empowering Future Developers.",
+    description: "Building AI Products & Scalable Software.",
     type: "website",
     url: "https://upgradians.com",
     locale: "en_IN",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Upgradian Technology",
-    description: "Building AI Products. Empowering Future Developers.",
+    description: "AI Engineering & Software Development Company.",
   },
 };
 
@@ -35,28 +35,28 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   return (
-    <div className="bg-[#09090e] text-white overflow-x-hidden">
+    <div className="bg-[#000008] text-white overflow-x-hidden">
       <MarketingNav isAuthenticated={!!user} />
 
-      {/* 1. Hero — headline, code floaters, CTAs, stat strip */}
+      {/* 1. Hero — IT/AI company positioning */}
       <HeroSection isAuthenticated={!!user} />
 
-      {/* 2. How it works — 4-step conversion path */}
+      {/* 2. How We Work — engineering process */}
       <HowItWorks />
 
-      {/* 3. Services — what Upgradian builds as a company */}
+      {/* 3. Services — complete IT services portfolio */}
       <ServicesSection />
 
-      {/* 4. Internships — real projects, real experience */}
+      {/* 4. Careers — startup hiring, real projects */}
       <InternshipsSection />
 
-      {/* 5. Learning hub — platform features */}
+      {/* 5. Practice Platform — brief ecosystem teaser */}
       <LearningSection />
 
-      {/* 6. Stats — animated social-proof numbers */}
+      {/* 6. Stats — social proof */}
       <StatsSection />
 
-      {/* 7. Testimonials — infinite auto-scroll marquee */}
+      {/* 7. Developer stories marquee */}
       <TestimonialsSection />
 
       <MarketingFooter />

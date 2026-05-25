@@ -1,24 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Zap, Menu, X, ArrowRight } from "lucide-react";
+import { Zap, Menu, X, ArrowRight, ChevronDown, Code2, Bot, Trophy, BarChart3 } from "lucide-react";
 
 interface MarketingNavProps {
   isAuthenticated: boolean;
 }
 
-const NAV_LINKS = [
-  { href: "#how-it-works", label: "How It Works" },
-  { href: "#services",     label: "Services"     },
-  { href: "#internships",  label: "Internships"  },
-  { href: "#learning",     label: "Platform"     },
-  { href: "#about",        label: "Testimonials" },
+const MAIN_LINKS = [
+  { href: "/#services",  label: "Services"  },
+  { href: "/#careers",   label: "Careers"   },
+  { href: "/contact",    label: "Contact"   },
+];
+
+const PRACTICE_ITEMS = [
+  { href: "/arena",       icon: Code2,     label: "Coding Arena",   desc: "500+ DSA challenges" },
+  { href: "/interview",   icon: Bot,       label: "AI Interviews",  desc: "Mock interview prep" },
+  { href: "/contests",    icon: Trophy,    label: "Contests",       desc: "Compete & win prizes" },
+  { href: "/leaderboard", icon: BarChart3, label: "Leaderboard",    desc: "Global rankings" },
 ];
 
 export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
-  const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen]         = useState(false);
+  const [scrolled,       setScrolled]       = useState(false);
+  const [mobileOpen,     setMobileOpen]     = useState(false);
+  const [practiceOpen,   setPracticeOpen]   = useState(false);
+  const practiceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 32);
@@ -28,21 +35,33 @@ export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
-  }, [open]);
+  }, [mobileOpen]);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setMobileOpen(false); setPracticeOpen(false); }
+    };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (practiceRef.current && !practiceRef.current.contains(e.target as Node)) {
+        setPracticeOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   return (
     <nav
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-        scrolled || open
-          ? "bg-[#000008]/90 backdrop-blur-xl border-b border-white/[0.06]"
+        scrolled || mobileOpen
+          ? "bg-[#000008]/95 backdrop-blur-xl border-b border-white/[0.06]"
           : "bg-transparent"
       }`}
     >
@@ -60,15 +79,70 @@ export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-1">
-          {NAV_LINKS.map(({ href, label }) => (
-            <a
+          {MAIN_LINKS.map(({ href, label }) => (
+            <Link
               key={href}
               href={href}
               className="px-3 py-2 rounded-lg text-sm font-medium text-white/50 hover:text-white hover:bg-white/[0.05] transition-all duration-200"
             >
               {label}
-            </a>
+            </Link>
           ))}
+
+          {/* Practice dropdown */}
+          <div ref={practiceRef} className="relative">
+            <button
+              onClick={() => setPracticeOpen(v => !v)}
+              className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                practiceOpen ? "text-white bg-white/[0.05]" : "text-white/50 hover:text-white hover:bg-white/[0.05]"
+              }`}
+            >
+              Practice
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${practiceOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {practiceOpen && (
+              <div
+                className="absolute top-full left-0 mt-2 w-64 rounded-2xl overflow-hidden shadow-2xl"
+                style={{
+                  background: "rgba(7,7,15,0.98)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(20px)",
+                }}
+              >
+                <div className="p-2">
+                  {PRACTICE_ITEMS.map(({ href, icon: Icon, label, desc }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setPracticeOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group hover:bg-white/[0.05]"
+                    >
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+                        style={{ background: "rgba(67,97,238,0.15)", border: "1px solid rgba(67,97,238,0.2)" }}>
+                        <Icon className="w-4 h-4 text-brand" strokeWidth={1.5} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-white leading-none mb-0.5">{label}</div>
+                        <div className="text-xs text-white/40">{desc}</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+                <div className="border-t border-white/[0.06] p-2">
+                  <Link
+                    href="/practice"
+                    onClick={() => setPracticeOpen(false)}
+                    className="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all hover:bg-white/[0.05]"
+                    style={{ color: "#6c8aff" }}
+                  >
+                    View all practice tools
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Actions */}
@@ -89,21 +163,22 @@ export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
                 Sign in
               </Link>
               <Link
-                href="/register"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-brand text-white text-sm font-semibold transition-all hover:shadow-brand hover:-translate-y-px active:scale-95"
+                href="/contact"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-brand text-white text-sm font-semibold transition-all hover:-translate-y-px active:scale-95"
+                style={{ boxShadow: "0 4px 16px rgba(67,97,238,0.3)" }}
               >
-                Get Started <ArrowRight className="w-3.5 h-3.5" />
+                Build With Us <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </>
           )}
 
           <button
-            onClick={() => setOpen(v => !v)}
+            onClick={() => setMobileOpen(v => !v)}
             className="md:hidden p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/[0.05] transition-all"
-            aria-label={open ? "Close menu" : "Open menu"}
-            aria-expanded={open}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
           >
-            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
@@ -111,28 +186,45 @@ export function MarketingNav({ isAuthenticated }: MarketingNavProps) {
       {/* Mobile menu */}
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
+          mobileOpen ? "max-h-[520px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         <div className="border-t border-white/[0.06] px-4 py-4 space-y-1 bg-[#000008]">
-          {NAV_LINKS.map(({ href, label }) => (
-            <a
+          {MAIN_LINKS.map(({ href, label }) => (
+            <Link
               key={href}
               href={href}
-              onClick={() => setOpen(false)}
+              onClick={() => setMobileOpen(false)}
               className="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/[0.05] transition-all"
             >
               {label}
-            </a>
+            </Link>
+          ))}
+          <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/20 mt-2">
+            Practice Platform
+          </div>
+          {PRACTICE_ITEMS.map(({ href, icon: Icon, label }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/[0.05] transition-all"
+            >
+              <Icon className="w-4 h-4 text-brand" strokeWidth={1.5} />
+              {label}
+            </Link>
           ))}
           {!isAuthenticated && (
-            <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/[0.05] transition-all"
-            >
-              Sign in
-            </Link>
+            <>
+              <div className="h-px bg-white/[0.06] my-2" />
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/[0.05] transition-all"
+              >
+                Sign in
+              </Link>
+            </>
           )}
         </div>
       </div>
