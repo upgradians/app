@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Monitor, Bot, BarChart3, Palette, Server, Code2, Check, ArrowRight, Users, Zap } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
@@ -56,7 +55,7 @@ export function InternshipsSection() {
                 ))}
               </ul>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Link
+                <a
                   href="mailto:career@upgradians.com"
                   className="group inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
                   style={{ background: "linear-gradient(135deg, #4361ee, #7c3aed)", boxShadow: "0 0 0 1px rgba(67,97,238,0.4), 0 8px 32px rgba(67,97,238,0.25)" }}
@@ -64,7 +63,7 @@ export function InternshipsSection() {
                   <Zap className="w-4 h-4" />
                   Apply Now
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
+                </a>
               </div>
               <p className="mt-3 text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>Send your resume to career@upgradians.com</p>
             </ScrollReveal>

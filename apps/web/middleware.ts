@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES   = ["/", "/login", "/register", "/about", "/pricing"];
+const PUBLIC_ROUTES   = ["/", "/login", "/register", "/about", "/pricing", "/contact", "/practice"];
 const AUTH_ROUTES     = ["/login", "/register"];
 const RECRUITER_PATHS = ["/recruiter"];
 const ADMIN_PATHS     = ["/admin"];
@@ -73,6 +73,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/auth|manifest.json|icons/).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/|manifest.json|icons/).*)",
   ],
 };

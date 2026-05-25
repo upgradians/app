@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Send, Loader2, Bot, Minimize2 } from "lucide-react";
+import { Send, Loader2, Bot, Minimize2 } from "lucide-react";
 
 interface Message {
   role: "user" | "model";
@@ -93,18 +93,6 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* Keyframes injected at runtime via a style tag — safe in client component */}
-      <style>{`
-        @keyframes chatDot {
-          0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
-          40% { opacity: 1; transform: scale(1); }
-        }
-        @keyframes chatSlideUp {
-          from { opacity: 0; transform: translateY(16px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0)    scale(1);    }
-        }
-      `}</style>
-
       {/* Floating button */}
       {!open && (
         <button
