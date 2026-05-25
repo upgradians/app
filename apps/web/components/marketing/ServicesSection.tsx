@@ -59,10 +59,7 @@ export function ServicesSection() {
             return (
               <ScrollReveal key={s.title} delay={i * 0.08}>
                 <div
-                  className="relative rounded-2xl p-6 h-full transition-all duration-300 hover:-translate-y-1 group cursor-default"
-                  style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${s.accent}40`; (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.045)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.025)"; }}
+                  className="relative rounded-2xl p-6 h-full transition-all duration-300 hover:-translate-y-1 hover:bg-white/[0.045] hover:border-white/15 group cursor-default border border-white/[0.07] bg-white/[0.025]"
                 >
                   {/* Subtle top glow line */}
                   <div className="absolute inset-x-0 top-0 h-px rounded-t-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(90deg, transparent, ${s.accent}60, transparent)` }} />

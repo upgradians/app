@@ -76,10 +76,7 @@ export function MarketingFooter() {
                   aria-label={label}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110 hover:bg-white/[0.06]"
-                  style={{ border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.3)" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.8)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.3)"; }}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110 hover:bg-white/[0.06] text-white/30 hover:text-white/80 border border-white/[0.07]"
                 >
                   {svg}
                 </a>
@@ -98,10 +95,7 @@ export function MarketingFooter() {
                   <li key={label}>
                     <Link
                       href={href}
-                      className="text-sm transition-colors duration-200"
-                      style={{ color: "rgba(136,146,176,0.45)" }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.8)"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(136,146,176,0.45)"; }}
+                      className="text-sm transition-colors duration-200 text-white/40 hover:text-white/80"
                     >
                       {label}
                     </Link>
