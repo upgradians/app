@@ -87,6 +87,22 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Rate limit: max 5 interview sessions per hour
+  try {
+    const oneHourAgo = new Date(Date.now() - 3_600_000).toISOString();
+    const { count } = await supabase
+      .from("interview_sessions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("created_at", oneHourAgo);
+    if ((count ?? 0) >= 5) {
+      return NextResponse.json(
+        { error: "You've started 5 sessions in the last hour. Please wait before starting another." },
+        { status: 429 },
+      );
+    }
+  } catch { /* table may not exist in dev — skip */ }
+
   let role = "fullstack";
   let level = "mid";
   try {

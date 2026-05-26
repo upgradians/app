@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { SEED_CHALLENGES } from "@/lib/challenges-seed";
 import { pistonRun, PISTON_LANGS, type ExecStatus } from "@/lib/piston";
+import { preValidateCode } from "@/lib/execution/validate";
 import { getRankFromXP } from "@upgradian/types";
 
 export const maxDuration = 60;
@@ -39,10 +40,9 @@ async function runTestCases(
     try {
       r = await pistonRun(code, language, tc.input ?? "");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Execution service error.";
-      console.error(`[submissions] Piston error on test ${i + 1}:`, err);
-      return { status: "runtime_error", output: msg,
-        runtimeMs: totalRuntime, passedCount, totalCount: testCases.length };
+      // Piston service unavailable (network, timeout, HTTP 5xx) — rethrow so POST can save as pending
+      console.error(`[submissions] Piston service error on test ${i + 1}:`, err);
+      throw err;
     }
 
     totalRuntime += r.runtimeMs;
@@ -121,8 +121,15 @@ export async function POST(request: Request) {
     }, { status: 400 });
   }
 
+  // ── Code pre-validation (reject placeholder/unchanged starter) ──
+  const isSeed       = challenge_id.startsWith("seed-");
+  const seedForPreV  = isSeed ? SEED_CHALLENGES.find(c => c.id === challenge_id) : null;
+  const preErr       = preValidateCode(code, language, seedForPreV?.starter_code ?? null);
+  if (preErr) {
+    return NextResponse.json({ error: preErr }, { status: 422 });
+  }
+
   // ── Anti-spam cooldown (DB challenges only) ──
-  const isSeed = challenge_id.startsWith("seed-");
   if (!isSeed) {
     const { data: recent } = await supabase
       .from("submissions")
@@ -183,7 +190,31 @@ export async function POST(request: Request) {
   }
 
   // ── Execute all test cases via Piston ──
-  const exec = await runTestCases(code, language, testCases);
+  let exec: RunAllResult;
+  try {
+    exec = await runTestCases(code, language, testCases);
+  } catch (err) {
+    console.error("[submissions] Piston unavailable:", err);
+    // Execution engine is down — save as pending, never auto-accept
+    let submissionIdOnFailure: string | undefined;
+    if (!isSeed && challengeDbId) {
+      const { data: saved } = await supabase
+        .from("submissions")
+        .insert({ user_id: user.id, challenge_id: challengeDbId, code, language, status: "pending", runtime_ms: null, memory_mb: null, xp_earned: 0 })
+        .select("id").single();
+      submissionIdOnFailure = saved?.id;
+    }
+    return NextResponse.json({
+      id:        submissionIdOnFailure,
+      status:    "pending",
+      output:    "The execution service is temporarily unavailable. Your submission has been saved and will be evaluated shortly. Please try again in a few minutes.",
+      runtime:   null,
+      memory:    null,
+      xp_earned: 0,
+      passed:    0,
+      total:     testCases.length,
+    }, { status: 200 });
+  }
 
   // XP only for a clean accepted run
   const xpEarned = exec.status === "accepted" ? xpReward : 0;

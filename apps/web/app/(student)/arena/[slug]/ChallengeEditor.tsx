@@ -153,6 +153,8 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
           toast.success("✅ Accepted! (Already solved — no XP)");
         }
         try { localStorage.removeItem(getDraftKey(challenge.id, lang)); } catch {}
+      } else if (data.status === "pending") {
+        toast("⏳ Submission queued — execution service is temporarily busy. Try again in a moment.", { icon: "⏳", duration: 6000 });
       } else {
         const labels: Record<string, string> = {
           wrong_answer:  "Wrong Answer",
@@ -176,6 +178,7 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
   }, [challenge, lang]);
 
   const accepted = result?.status === "accepted";
+  const pending  = result?.status === "pending";
 
   return (
     <FullscreenGuard enabled={contestMode} sessionType="coding">
@@ -325,12 +328,14 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
           {/* Result panel */}
           {result && (
             <div className={`border-t border-[var(--border)] p-4 text-sm transition-all ${
-              accepted ? "bg-emerald-50 border-t-emerald-200" : "bg-red-50 border-t-red-100"
+              accepted ? "bg-emerald-50 border-t-emerald-200"
+              : pending  ? "bg-amber-50 border-t-amber-200"
+              : "bg-red-50 border-t-red-100"
             }`}>
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <StatusBadge status={result.status} />
                 {/* Test case pass count */}
-                {result.total != null && result.total > 0 && (
+                {!pending && result.total != null && result.total > 0 && (
                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
                     accepted
                       ? "text-emerald-600 bg-emerald-50 border-emerald-200"
@@ -356,7 +361,7 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
                 </pre>
               )}
 
-              {/* Auto-next CTA after accepted */}
+              {/* CTAs */}
               {accepted ? (
                 <div className="flex items-center gap-3 mt-2">
                   <Link
@@ -373,6 +378,13 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
                     Retry
                   </button>
                 </div>
+              ) : pending ? (
+                <button
+                  onClick={() => setResult(null)}
+                  className="mt-1 text-xs font-semibold text-amber-600 hover:text-amber-800 transition-colors underline"
+                >
+                  Dismiss
+                </button>
               ) : (
                 <button
                   onClick={() => setResult(null)}

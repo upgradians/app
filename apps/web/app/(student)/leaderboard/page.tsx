@@ -13,10 +13,11 @@ export default async function LeaderboardPage() {
   const { data: entries } = await supabase
     .from("profiles")
     .select("id,username,full_name,total_xp,rank,challenges_solved,streak_days,avatar_url,last_active_at")
-    .eq("role", "student")
-    .neq("id", ADMIN_ID)
+    .neq("role", "admin")       // exclude all admin accounts
+    .neq("id", ADMIN_ID)        // belt-and-suspenders UID exclusion
+    .gte("total_xp", 0)         // guard against negative XP anomalies
     .order("total_xp", { ascending: false })
-    .limit(50);
+    .limit(100);
 
   // Remap id → user_id for LeaderboardEntry compatibility
   const mapped = (entries ?? []).map(e => ({ ...e, user_id: e.id }));
