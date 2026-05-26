@@ -16,16 +16,15 @@ export function LogoutButton({ className = "", showIcon = true, label = "Sign Ou
   const handleLogout = async () => {
     if (loading) return;
     setLoading(true);
+    const timeout = new Promise<void>(resolve => setTimeout(resolve, 4000));
     try {
       const supabase = createClient();
-      await supabase.auth.signOut({ scope: "local" });
+      await Promise.race([supabase.auth.signOut({ scope: "local" }), timeout]);
     } catch {
       // Ignore signOut errors — proceed with client-side cleanup regardless
     } finally {
-      // Clear all local state unconditionally
       try { localStorage.clear(); } catch {}
       try { sessionStorage.clear(); } catch {}
-      // Hard redirect clears stale router/auth cache completely
       window.location.replace("/");
     }
   };

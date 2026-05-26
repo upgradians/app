@@ -1,5 +1,14 @@
 import type { NextConfig } from "next";
 
+const securityHeaders = [
+  { key: "X-Content-Type-Options",  value: "nosniff" },
+  { key: "X-Frame-Options",         value: "DENY" },
+  { key: "X-XSS-Protection",        value: "1; mode=block" },
+  { key: "Referrer-Policy",         value: "strict-origin-when-cross-origin" },
+  // Allow camera/mic/fullscreen for interview and arena features
+  { key: "Permissions-Policy",      value: "camera=(self), microphone=(self), fullscreen=(self)" },
+];
+
 const nextConfig: NextConfig = {
   transpilePackages: ["@upgradian/ui", "@upgradian/types"],
   images: {
@@ -8,6 +17,11 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
     ],
+  },
+  async headers() {
+    return [
+      { source: "/(.*)", headers: securityHeaders },
+    ];
   },
 };
 

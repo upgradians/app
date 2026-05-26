@@ -36,9 +36,22 @@ function getDraftKey(challengeId: string, lang: string) {
   return `draft:${challengeId}:${lang}`;
 }
 
+const LANG_STARTERS: Record<string, string> = {
+  python:     "# Write your solution here\n\n",
+  javascript: "// Write your solution here\n\n",
+  typescript: "// Write your solution here\n\n",
+  java:       "import java.util.*;\n\npublic class Solution {\n    public static void main(String[] args) {\n        // Write your solution here\n    }\n}\n",
+  cpp:        "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    // Write your solution here\n    return 0;\n}\n",
+  c:          "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nint main() {\n    // Write your solution here\n    return 0;\n}\n",
+  go:         "package main\n\nimport \"fmt\"\n\nfunc main() {\n    // Write your solution here\n    fmt.Println()\n}\n",
+  rust:       "use std::io::{self, BufRead};\n\nfn main() {\n    let stdin = io::stdin();\n    // Write your solution here\n}\n",
+  kotlin:     "fun main() {\n    // Write your solution here\n}\n",
+  csharp:     "using System;\nusing System.Collections.Generic;\n\nclass Solution {\n    static void Main(string[] args) {\n        // Write your solution here\n    }\n}\n",
+};
+
 export function ChallengeEditor({ challenge, submissions, contestMode = false }: Props) {
   const defaultLang = (challenge.language ?? "python") as SupportedLanguageId;
-  const defaultCode = challenge.starter_code ?? "# Write your solution here\n";
+  const defaultCode = challenge.starter_code ?? LANG_STARTERS[defaultLang] ?? "# Write your solution here\n";
 
   const [lang,    setLang]    = useState<SupportedLanguageId>(defaultLang);
   const [code,    setCode]    = useState(() => {
@@ -81,9 +94,10 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
     if (next !== defaultLang) {
       toast(`⚠️ Switching to ${next}. Challenge test cases are written for ${defaultLang}.`, { icon: "⚠️", duration: 4000 });
     }
+    const fallback = LANG_STARTERS[next] ?? "# Write your solution here\n";
     const saved = typeof window !== "undefined"
-      ? (localStorage.getItem(getDraftKey(challenge.id, next)) ?? challenge.starter_code ?? "")
-      : (challenge.starter_code ?? "");
+      ? (localStorage.getItem(getDraftKey(challenge.id, next)) ?? fallback)
+      : fallback;
     setLang(next);
     setCode(saved);
   }, [lang, defaultLang, challenge]);

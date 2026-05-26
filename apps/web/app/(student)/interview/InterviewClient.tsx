@@ -75,7 +75,9 @@ export function InterviewClient() {
   const [session, setSession] = useState<SessionState | null>(null);
   const [answer,  setAnswer]  = useState("");
   const [results, setResults] = useState<{ score: number; feedback: string; breakdown: Record<string, number> } | null>(null);
-  const [webcamOk,setWebcamOk]= useState(false);
+  const [webcamOk,  setWebcamOk]   = useState(false);
+  const [camError,  setCamError]   = useState<string | null>(null);
+  const [camChecked,setCamChecked] = useState(false);
   const videoRef  = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -111,14 +113,40 @@ export function InterviewClient() {
   }, [questionTimer.expired]);
 
   const requestWebcam = useCallback(async () => {
+    setCamError(null);
+    setCamChecked(false);
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      const msg = "Your browser doesn't support camera access. Please use Chrome or Firefox on desktop.";
+      setCamError(msg);
+      setCamChecked(true);
+      toast.error(msg);
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       streamRef.current = stream;
       if (videoRef.current) videoRef.current.srcObject = stream;
       setWebcamOk(true);
-    } catch {
-      toast.error("Camera and microphone are required to start the interview. Please allow access and try again.");
-      setWebcamOk(false); // block interview — permissions required
+      setCamChecked(true);
+      setCamError(null);
+    } catch (err) {
+      setCamChecked(true);
+      setWebcamOk(false);
+      const name = err instanceof Error ? err.name : "";
+      let msg: string;
+      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+        msg = "Camera/microphone access was denied. Open your browser settings, allow access for this site, then click Retry.";
+      } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        msg = "No camera or microphone found. Please connect a device and click Retry.";
+      } else if (name === "NotReadableError" || name === "TrackStartError") {
+        msg = "Your camera is already in use by another application. Close it and click Retry.";
+      } else {
+        msg = "Could not access camera or microphone. Please check your browser permissions and click Retry.";
+      }
+      setCamError(msg);
+      toast.error(msg);
     }
   }, []);
 
@@ -284,23 +312,34 @@ export function InterviewClient() {
                     </div>
                   )}
                 </div>
-                {!webcamOk ? (
-                  <Button onClick={requestWebcam} className="w-full mb-3">
-                    Enable Camera & Microphone
-                  </Button>
-                ) : (
+                {webcamOk ? (
                   <div className="flex items-center gap-2 text-emerald-400 text-sm font-semibold mb-3">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     Camera & microphone ready
                   </div>
+                ) : (
+                  <Button onClick={requestWebcam} className="w-full mb-3">
+                    {camChecked ? "Retry Camera Access" : "Enable Camera & Microphone"}
+                  </Button>
                 )}
                 <p className="text-xs text-[var(--text-3)]">
                   Camera access helps ensure interview integrity. Your session is not recorded or stored externally.
                 </p>
               </div>
-              {!webcamOk && (
-                <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 font-semibold">
-                  📷 Camera and microphone access is required. Click &quot;Enable Camera &amp; Microphone&quot; above to continue.
+
+              {camError && (
+                <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                  <div className="font-bold mb-1">📷 Camera Access Required</div>
+                  <div className="mb-2">{camError}</div>
+                  <div className="text-xs text-red-500">
+                    Chrome: click the 🔒 icon in the address bar → Site settings → Allow Camera and Microphone.
+                  </div>
+                </div>
+              )}
+
+              {!camChecked && !webcamOk && (
+                <div className="mb-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700 font-semibold">
+                  📷 Camera and microphone access is required to continue.
                 </div>
               )}
               <div className="flex gap-3">
