@@ -6,16 +6,25 @@ import { preValidateCode } from "@/lib/execution/validate";
 import { runSubmissionPipeline } from "@/lib/execution/pipeline";
 import type { TestCase } from "@/lib/execution/types";
 import { getRankFromXP } from "@upgradian/types";
+import { logger } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 60;
 
 const COOLDOWN_MS = 5_000;
+const SCOPE       = "api/submissions";
 
 // ─── POST /api/submissions ────────────────────────────────────────────────────
 export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Rate-limit: 20 submissions per minute per user
+  const rl = checkRateLimit(`submissions:${user.id}`, 20, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Too many submissions. Please slow down." }, { status: 429 });
+  }
 
   // ── Parse body ────────────────────────────────────────────────────────────
   let body: { challenge_id?: string; code?: string; language?: string };
@@ -25,15 +34,9 @@ export async function POST(request: Request) {
   const { challenge_id, code, language } = body;
 
   // ── Input validation ──────────────────────────────────────────────────────
-  if (!challenge_id) {
-    return NextResponse.json({ error: "challenge_id is required." }, { status: 400 });
-  }
-  if (!code?.trim()) {
-    return NextResponse.json({ error: "Code cannot be empty." }, { status: 400 });
-  }
-  if (!language) {
-    return NextResponse.json({ error: "Language is required." }, { status: 400 });
-  }
+  if (!challenge_id) return NextResponse.json({ error: "challenge_id is required."           }, { status: 400 });
+  if (!code?.trim()) return NextResponse.json({ error: "Code cannot be empty."               }, { status: 400 });
+  if (!language)     return NextResponse.json({ error: "Language is required."               }, { status: 400 });
   if (!(language in PISTON_LANGS)) {
     return NextResponse.json({
       error: `Unsupported language "${language}". Supported: ${Object.keys(PISTON_LANGS).join(", ")}`,
@@ -44,11 +47,9 @@ export async function POST(request: Request) {
   const isSeed      = challenge_id.startsWith("seed-");
   const seedForPreV = isSeed ? SEED_CHALLENGES.find(c => c.id === challenge_id) : null;
   const preErr      = preValidateCode(code, language, seedForPreV?.starter_code ?? null);
-  if (preErr) {
-    return NextResponse.json({ error: preErr }, { status: 422 });
-  }
+  if (preErr) return NextResponse.json({ error: preErr }, { status: 422 });
 
-  // ── Anti-spam cooldown (DB challenges only) ───────────────────────────────
+  // ── Cooldown (DB challenges only) ─────────────────────────────────────────
   if (!isSeed) {
     const { data: recent } = await supabase
       .from("submissions")
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
     }
   }
 
-  // ── Load challenge + ALL test cases (hidden included — never sent to client) ──
+  // ── Load challenge + ALL test cases ──────────────────────────────────────
   const seed = isSeed ? SEED_CHALLENGES.find(c => c.id === challenge_id) : null;
   let challengeDbId: string | null = null;
   let xpReward = 50;
@@ -86,9 +87,7 @@ export async function POST(request: Request) {
       .eq("id", challenge_id)
       .single();
 
-    if (chErr || !ch) {
-      return NextResponse.json({ error: "Challenge not found." }, { status: 404 });
-    }
+    if (chErr || !ch) return NextResponse.json({ error: "Challenge not found." }, { status: 404 });
 
     challengeDbId = ch.id;
     xpReward      = ch.xp_reward ?? 50;
@@ -108,12 +107,12 @@ export async function POST(request: Request) {
     testCases = [{ input: "", expected_output: "", is_hidden: false }];
   }
 
-  // ── Execute all test cases via provider pipeline ───────────────────────────
+  // ── Execute via provider pipeline ─────────────────────────────────────────
   let exec;
   try {
     exec = await runSubmissionPipeline(code, language, testCases);
   } catch (err) {
-    console.error("[submissions] Execution provider unavailable:", err);
+    logger.error(SCOPE, "Execution provider unavailable", { userId: user.id, err: String(err) });
     let pendingId: string | undefined;
     if (!isSeed && challengeDbId) {
       const { data: saved } = await supabase
@@ -130,18 +129,14 @@ export async function POST(request: Request) {
       id:        pendingId,
       status:    "pending",
       output:    "The execution service is temporarily unavailable. Your submission has been saved. Please try again in a few minutes.",
-      runtime:   null,
-      memory:    null,
-      xp_earned: 0,
-      passed:    0,
-      total:     testCases.length,
+      runtime:   null, memory: null, xp_earned: 0,
+      passed:    0, total: testCases.length,
     });
   }
 
-  // ── XP: only for clean accepted run ──────────────────────────────────────
   const xpEarned = exec.status === "accepted" ? xpReward : 0;
 
-  // ── Persist submission (DB challenges only) ───────────────────────────────
+  // ── Persist submission row ─────────────────────────────────────────────────
   let submissionId: string | undefined;
   if (!isSeed && challengeDbId) {
     const { data: saved, error: saveErr } = await supabase
@@ -149,8 +144,7 @@ export async function POST(request: Request) {
       .insert({
         user_id:      user.id,
         challenge_id: challengeDbId,
-        code,
-        language,
+        code, language,
         status:       exec.status,
         runtime_ms:   exec.runtimeMs,
         memory_mb:    null,
@@ -159,33 +153,26 @@ export async function POST(request: Request) {
       .select("id")
       .single();
 
-    if (saveErr) console.error("[submissions] Save error:", saveErr);
+    if (saveErr) logger.error(SCOPE, "Submission save error", { userId: user.id, error: saveErr.message });
     submissionId = saved?.id;
   }
 
-  // ── Profile updates: accepted + XP earned ─────────────────────────────────
+  // ── XP: only on first accepted solve (atomic via user_solved_challenges) ──
   if (exec.status === "accepted" && xpEarned > 0) {
+    const firstSolveId = isSeed ? challenge_id : challengeDbId!;
 
-    // First-solve gate — prevents duplicate XP farming
-    let isFirstSolve = false;
-    if (isSeed) {
-      const { data: p } = await supabase
-        .from("profiles")
-        .select("solved_seed_ids")
-        .eq("id", user.id)
-        .single();
-      isFirstSolve = !(p?.solved_seed_ids ?? []).includes(challenge_id);
-    } else if (challengeDbId) {
-      const { count } = await supabase
-        .from("submissions")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id",      user.id)
-        .eq("challenge_id", challengeDbId)
-        .eq("status",       "accepted");
-      isFirstSolve = (count ?? 0) <= 1;
-    }
+    // Atomic upsert — ON CONFLICT DO NOTHING means null is returned if already solved
+    const { data: freshSolve } = await supabase
+      .from("user_solved_challenges")
+      .upsert(
+        { user_id: user.id, challenge_id: firstSolveId, xp_awarded: xpReward },
+        { onConflict: "user_id,challenge_id", ignoreDuplicates: true },
+      )
+      .select("xp_awarded")
+      .maybeSingle();
 
-    if (!isFirstSolve) {
+    if (!freshSolve) {
+      // Already solved — return zero XP
       return NextResponse.json({
         id: submissionId, status: exec.status,
         output: exec.output, runtime: exec.runtimeMs, memory: null,
@@ -193,7 +180,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Update profile: XP, rank, streak, challenges_solved
+    // First solve — update profile
     try {
       const { data: prof } = await supabase
         .from("profiles")
@@ -204,15 +191,14 @@ export async function POST(request: Request) {
       const todayUTC  = new Date().toISOString().slice(0, 10);
       const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
       const lastDate  = prof?.last_streak_date ?? null;
-      const lastXP    = Number(prof?.total_xp ?? 0);
-      const newXP     = lastXP + xpEarned;
+      const newXP     = Number(prof?.total_xp ?? 0) + xpEarned;
 
       const newStreak =
         !lastDate || lastDate < yesterday ? 1 :
         lastDate === yesterday            ? (prof?.streak_days ?? 0) + 1 :
                                             prof?.streak_days ?? 1;
 
-      const newRank = getRankFromXP(newXP);
+      const newRank   = getRankFromXP(newXP);
 
       interface ProfileUpdate {
         total_xp:          number;
@@ -221,7 +207,7 @@ export async function POST(request: Request) {
         last_streak_date:  string;
         last_active_at:    string;
         challenges_solved?: number;
-        solved_seed_ids?:   string[];
+        solved_seed_ids?:  string[];
       }
 
       const update: ProfileUpdate = {
@@ -242,9 +228,9 @@ export async function POST(request: Request) {
         .update(update)
         .eq("id", user.id);
 
-      if (updErr) console.error("[submissions] Profile update error:", updErr);
+      if (updErr) logger.error(SCOPE, "Profile update error", { userId: user.id, error: updErr.message });
     } catch (err) {
-      console.error("[submissions] Profile block error:", err);
+      logger.error(SCOPE, "Profile update block error", { userId: user.id, err: String(err) });
     }
   }
 

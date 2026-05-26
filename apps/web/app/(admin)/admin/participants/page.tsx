@@ -20,7 +20,7 @@ interface Participant {
   rank?: string | null;
 }
 
-type ParticipantAction = "ban" | "unban" | "reset_xp" | "reset_streak";
+type ParticipantAction = "ban" | "unban" | "warn" | "clear_violations" | "reset_xp" | "reset_streak";
 type PendingAction = { userId: string; action: ParticipantAction } | null;
 
 const PAGE_SIZE = 20;
@@ -223,10 +223,12 @@ export default function ParticipantsPage() {
                   <td className="px-4 py-3 text-[var(--text-2)] whitespace-nowrap">🔥 {Number(p.streak_days ?? 0)}</td>
                   <td className="px-4 py-3 text-[var(--text-3)] text-xs whitespace-nowrap">{p.rank ?? "Bronze Coder"}</td>
                   <td className="px-4 py-3 whitespace-nowrap z-20 relative">
-                    <div className="flex items-center gap-1">
-                      <ActionButton userId={p.id} action="reset_xp"     label="0 XP"   color="text-amber-500 border-amber-500/30 bg-amber-500/5" />
-                      <ActionButton userId={p.id} action="reset_streak" label="🔥 0"   color="text-orange-500 border-orange-500/30 bg-orange-500/5" />
-                      <ActionButton userId={p.id} action="ban"          label="Ban"    color="text-red-500 border-red-500/30 bg-red-500/5" />
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <ActionButton userId={p.id} action="warn"            label="Warn"   color="text-orange-500 border-orange-500/30 bg-orange-500/5" />
+                      <ActionButton userId={p.id} action="clear_violations" label="Clear⚠" color="text-sky-500 border-sky-500/30 bg-sky-500/5" />
+                      <ActionButton userId={p.id} action="reset_xp"        label="0 XP"   color="text-amber-500 border-amber-500/30 bg-amber-500/5" />
+                      <ActionButton userId={p.id} action="reset_streak"    label="🔥 0"   color="text-yellow-500 border-yellow-500/30 bg-yellow-500/5" />
+                      <ActionButton userId={p.id} action="ban"             label="Ban"    color="text-red-500 border-red-500/30 bg-red-500/5" />
                     </div>
                   </td>
                 </tr>

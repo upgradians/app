@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+const SCOPE = "api/interview/start";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL   = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
@@ -87,7 +91,16 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Rate limit: max 5 interview sessions per hour
+  // In-memory rate limit: max 10 starts per hour
+  const rl = checkRateLimit(`interview:start:${user.id}`, 10, 3_600_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "You've started too many sessions recently. Please wait before starting another." },
+      { status: 429 },
+    );
+  }
+
+  // DB rate limit: max 5 sessions per hour (precise, survives cold starts)
   try {
     const oneHourAgo = new Date(Date.now() - 3_600_000).toISOString();
     const { count } = await supabase
@@ -102,6 +115,19 @@ export async function POST(request: Request) {
       );
     }
   } catch { /* table may not exist in dev — skip */ }
+
+  // Expire any in_progress sessions older than 35 minutes (prevents orphaned sessions)
+  try {
+    const staleAt = new Date(Date.now() - 35 * 60_000).toISOString();
+    await supabase
+      .from("interview_sessions")
+      .update({ status: "expired" })
+      .eq("user_id", user.id)
+      .eq("status", "in_progress")
+      .lt("created_at", staleAt);
+  } catch { /* non-critical */ }
+
+  logger.info(SCOPE, "Starting interview session", { userId: user.id });
 
   let role = "fullstack";
   let level = "mid";

@@ -31,5 +31,11 @@
       "source": "/api/v1/:path*",
       "destination": "https://api.upgradian.com/:path*"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/daily-reset",
+      "schedule": "0 0 * * *"
+    }
   ]
 }

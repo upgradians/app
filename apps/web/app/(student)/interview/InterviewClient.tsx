@@ -237,7 +237,11 @@ export function InterviewClient() {
   }, [session, answer, handleFinish]);
 
   return (
-    <FullscreenGuard enabled={stage === "session"} sessionType="interview">
+    <FullscreenGuard
+      enabled={stage === "session"}
+      sessionType="interview"
+      sessionId={session?.sessionId}
+    >
       <div className="p-6 max-w-3xl mx-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-extrabold text-[var(--text-1)] tracking-tight">AI Interview 🤖</h1>

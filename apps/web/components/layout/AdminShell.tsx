@@ -15,9 +15,10 @@ const NAV = [
   { href: "/admin/contests",     icon: "🏆", label: "Contests"      },
   { href: "/admin/missions",     icon: "🎯", label: "Missions"      },
   { href: "/admin/tracks",       icon: "📚", label: "Skill Tracks"  },
-  { href: "/admin/submissions",  icon: "📤", label: "Submissions"   },
-  { href: "/admin/daily-challenge", icon: "📅", label: "Daily Challenge" },
-  { href: "/admin/analytics",       icon: "📈", label: "Analytics"       },
+  { href: "/admin/submissions",     icon: "📤", label: "Submissions"      },
+  { href: "/admin/moderation",      icon: "🛡️", label: "Moderation"       },
+  { href: "/admin/daily-challenge", icon: "📅", label: "Daily Challenge"  },
+  { href: "/admin/analytics",       icon: "📈", label: "Analytics"        },
 ] as const;
 
 interface AdminShellProps {
