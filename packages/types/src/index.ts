@@ -348,6 +348,11 @@ export const SUPPORTED_LANGUAGES = [
   { id: "c",          label: "C",          judge0_id: 50, icon: "🔧" },
   { id: "go",         label: "Go",         judge0_id: 60, icon: "🔵" },
   { id: "rust",       label: "Rust",       judge0_id: 73, icon: "🦀" },
+  { id: "csharp",     label: "C#",         judge0_id: 51, icon: "💜" },
+  { id: "kotlin",     label: "Kotlin",     judge0_id: 78, icon: "🟣" },
+  { id: "php",        label: "PHP",        judge0_id: 68, icon: "🐘" },
+  { id: "ruby",       label: "Ruby",       judge0_id: 72, icon: "💎" },
+  { id: "swift",      label: "Swift",      judge0_id: 83, icon: "🍎" },
 ] as const;
 
 export type SupportedLanguageId = (typeof SUPPORTED_LANGUAGES)[number]["id"];

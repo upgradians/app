@@ -20,7 +20,7 @@ const fadeUp = {
 };
 
 export function SettingsClient({ userId, email, currentName }: Props) {
-  const [theme,         setTheme]         = useState<"dark" | "light">("dark");
+  const [theme,         setTheme]         = useState<"dark" | "light">("light");
   const [notifications, setNotifications] = useState(true);
   const [displayName,   setDisplayName]   = useState(currentName);
   const [savingName,    setSavingName]     = useState(false);
@@ -29,7 +29,7 @@ export function SettingsClient({ userId, email, currentName }: Props) {
 
   useEffect(() => {
     const saved = document.documentElement.getAttribute("data-theme") as "dark" | "light" | null;
-    if (saved) setTheme(saved === "light" ? "light" : "dark");
+    setTheme(saved === "dark" ? "dark" : "light");
   }, []);
 
   const toggleTheme = () => {
@@ -64,12 +64,13 @@ export function SettingsClient({ userId, email, currentName }: Props) {
     }
     setDeleting(true);
     try {
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      toast.success("Account deletion requested. Contact support to complete.");
-      window.location.href = "/";
+      const res = await fetch("/api/account/delete", { method: "DELETE" });
+      if (!res.ok) throw new Error("Deletion failed");
+      try { localStorage.clear(); } catch {}
+      try { sessionStorage.clear(); } catch {}
+      window.location.replace("/");
     } catch {
-      toast.error("Failed to process request.");
+      toast.error("Failed to delete account. Please try again.");
       setDeleting(false);
     }
   };

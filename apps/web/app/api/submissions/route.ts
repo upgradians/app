@@ -14,6 +14,11 @@ const JUDGE0_LANG: Record<string, number> = {
   c:          50,
   go:         60,
   rust:       73,
+  csharp:     51,
+  kotlin:     78,
+  php:        68,
+  ruby:       72,
+  swift:      83,
 };
 
 interface Judge0Result {
@@ -39,24 +44,6 @@ async function runOnJudge0(code: string, languageId: number, stdin: string): Pro
   return res.json();
 }
 
-// Simple JS mock evaluator for seed challenges when Judge0 is unavailable
-function mockEvaluate(code: string, language: string, input: string): { output: string; ok: boolean } {
-  try {
-    if (language === "javascript") {
-      const lines = input.split("\n").map(l => l.trim()).filter(Boolean);
-      // Replace console.log with capturing
-      const captured: string[] = [];
-      const sandboxLog = (...args: unknown[]) => captured.push(args.map(String).join(" "));
-      // Very limited — just run it with overridden console.log
-      const fn = new Function("console", "_input", "_inputLines", code + "\n");
-      fn({ log: sandboxLog, error: sandboxLog }, input, lines);
-      return { output: captured.join("\n").trim(), ok: true };
-    }
-  } catch {
-    // mock evaluation failed, fall through
-  }
-  return { output: "", ok: false };
-}
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -121,15 +108,19 @@ export async function POST(request: Request) {
     testCases = [{ input: "", expected_output: "" }];
   }
 
-  let allPassed     = true;
-  let lastOutput    = "";
-  let totalRuntime  = 0;
-  let totalMemory   = 0;
-  let judgeAvailable = !!JUDGE0_KEY;
+  if (!JUDGE0_KEY) {
+    return NextResponse.json(
+      { error: "Code execution service unavailable. Please try again later." },
+      { status: 503 }
+    );
+  }
+
+  let allPassed    = true;
+  let lastOutput   = "";
+  let totalRuntime = 0;
+  let totalMemory  = 0;
 
   for (const tc of testCases) {
-    if (!judgeAvailable) break;
-
     try {
       const result = await runOnJudge0(code, langId, tc.input ?? "");
       const expected = (tc.expected_output ?? "").trim();
@@ -144,25 +135,10 @@ export async function POST(request: Request) {
       totalRuntime += parseFloat(result.time ?? "0") * 1000;
       totalMemory  += (result.memory ?? 0) / 1024;
     } catch {
-      judgeAvailable = false;
-      break;
-    }
-  }
-
-  // Mock evaluation fallback when Judge0 is unavailable
-  if (!judgeAvailable) {
-    const firstTc = testCases[0];
-    const mock = mockEvaluate(code, language, firstTc?.input ?? "");
-    if (mock.ok) {
-      const expected = (firstTc?.expected_output ?? "").trim();
-      allPassed  = !expected || mock.output === expected;
-      lastOutput = mock.output;
-    } else {
-      // Accept if code is non-empty and looks reasonable (best-effort mock)
-      allPassed  = code.trim().length > 10;
-      lastOutput = "Mock execution (Judge0 unavailable)";
-      totalRuntime = Math.floor(Math.random() * 50) + 10;
-      totalMemory  = Math.random() * 5 + 2;
+      return NextResponse.json(
+        { error: "Code execution service unavailable. Please try again later." },
+        { status: 503 }
+      );
     }
   }
 
@@ -269,6 +245,5 @@ export async function POST(request: Request) {
     runtime:    runtimeMs,
     memory:     parseFloat(memoryMb.toFixed(1)),
     xp_earned:  xpEarned,
-    judge_used: judgeAvailable ? "judge0" : "mock",
   });
 }

@@ -88,6 +88,22 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
     setCode(saved);
   }, [lang, defaultLang, challenge]);
 
+  // Disable copy/paste/drag-drop in contest mode
+  useEffect(() => {
+    if (!contestMode) return;
+    const block = (e: Event) => e.preventDefault();
+    document.addEventListener("copy",  block);
+    document.addEventListener("cut",   block);
+    document.addEventListener("paste", block);
+    document.addEventListener("drop",  block);
+    return () => {
+      document.removeEventListener("copy",  block);
+      document.removeEventListener("cut",   block);
+      document.removeEventListener("paste", block);
+      document.removeEventListener("drop",  block);
+    };
+  }, [contestMode]);
+
   // Auto-submit on contest timer expiry
   useEffect(() => {
     if (timer.expired && contestMode && !running && !result) {
@@ -262,7 +278,13 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
           <div className="flex-1 min-h-0">
             <MonacoEditor
               height="100%"
-              language={lang === "cpp" ? "cpp" : lang}
+              language={
+                lang === "cpp"    ? "cpp"    :
+                lang === "csharp" ? "csharp" :
+                lang === "kotlin" ? "kotlin" :
+                lang === "swift"  ? "swift"  :
+                lang
+              }
               value={code}
               onChange={v => setCode(v ?? "")}
               theme={monacoTheme}
