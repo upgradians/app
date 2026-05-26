@@ -9,10 +9,14 @@ export default async function LeaderboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   const { data: entries } = await supabase
-    .from("leaderboard")
-    .select("user_id,username,total_xp,rank,challenges_solved,streak_days,avatar_url")
+    .from("profiles")
+    .select("id,username,full_name,total_xp,rank,challenges_solved,streak_days,avatar_url,last_active_at")
+    .eq("role", "student")
     .order("total_xp", { ascending: false })
     .limit(50);
 
-  return <LeaderboardClient entries={entries ?? []} currentUserId={user?.id} />;
+  // Remap id → user_id for LeaderboardEntry compatibility
+  const mapped = (entries ?? []).map(e => ({ ...e, user_id: e.id }));
+
+  return <LeaderboardClient entries={mapped} currentUserId={user?.id} />;
 }

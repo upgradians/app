@@ -159,7 +159,7 @@ export function ProfileClient({ profile, email, userId }: Props) {
       <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.1 }}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { icon: <Zap className="w-4 h-4" />,      label: "XP",      value: (profile?.xp ?? 0).toLocaleString(),         color: "text-brand"       },
+            { icon: <Zap className="w-4 h-4" />,      label: "XP",      value: Number(profile?.total_xp ?? 0).toLocaleString(), color: "text-brand"       },
             { icon: <Flame className="w-4 h-4" />,     label: "Streak",  value: `${profile?.streak_days ?? 0}d`,             color: "text-orange-400"  },
             { icon: <User className="w-4 h-4" />,      label: "Rank",    value: profile?.rank ?? "Bronze Coder",             color: "text-purple-400"  },
             { icon: <Calendar className="w-4 h-4" />, label: "Joined",  value: joinedDate,                                   color: "text-sky-400"     },

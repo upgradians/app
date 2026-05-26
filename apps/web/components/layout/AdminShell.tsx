@@ -8,14 +8,15 @@ import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
 
 const NAV = [
-  { href: "/admin/dashboard",   icon: "📊", label: "Overview"    },
-  { href: "/admin/users",       icon: "👥", label: "Users"       },
-  { href: "/admin/challenges",  icon: "⚔️",  label: "Challenges"  },
-  { href: "/admin/contests",    icon: "🏆", label: "Contests"    },
-  { href: "/admin/missions",    icon: "🎯", label: "Missions"    },
-  { href: "/admin/tracks",      icon: "📚", label: "Skill Tracks"},
-  { href: "/admin/submissions", icon: "📤", label: "Submissions" },
-  { href: "/admin/analytics",   icon: "📈", label: "Analytics"   },
+  { href: "/admin/dashboard",    icon: "📊", label: "Overview"      },
+  { href: "/admin/participants", icon: "🧑‍💻", label: "Participants"  },
+  { href: "/admin/users",        icon: "👥", label: "Users"         },
+  { href: "/admin/challenges",   icon: "⚔️",  label: "Challenges"   },
+  { href: "/admin/contests",     icon: "🏆", label: "Contests"      },
+  { href: "/admin/missions",     icon: "🎯", label: "Missions"      },
+  { href: "/admin/tracks",       icon: "📚", label: "Skill Tracks"  },
+  { href: "/admin/submissions",  icon: "📤", label: "Submissions"   },
+  { href: "/admin/analytics",    icon: "📈", label: "Analytics"     },
 ] as const;
 
 interface AdminShellProps {

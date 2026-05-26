@@ -1,20 +1,22 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@upgradian/ui";
 import toast from "react-hot-toast";
+import { FullscreenGuard } from "@/components/anti-cheat/FullscreenGuard";
 
-type Stage = "select" | "session" | "results";
+type Stage = "select" | "webcam" | "session" | "results";
 type Role = { id: string; label: string; icon: string };
 
 const ROLES: Role[] = [
-  { id: "frontend", label: "Frontend Developer", icon: "🎨" },
-  { id: "backend",  label: "Backend Developer",  icon: "⚙️" },
-  { id: "fullstack",label: "Full Stack Developer",icon: "🚀" },
-  { id: "dsa",      label: "DSA & Algorithms",    icon: "🧠" },
-  { id: "ml",       label: "ML Engineer",         icon: "🤖" },
-  { id: "devops",   label: "DevOps Engineer",     icon: "🛠️" },
+  { id: "frontend",  label: "Frontend Developer",  icon: "🎨" },
+  { id: "backend",   label: "Backend Developer",   icon: "⚙️" },
+  { id: "fullstack", label: "Full Stack Developer", icon: "🚀" },
+  { id: "dsa",       label: "DSA & Algorithms",    icon: "🧠" },
+  { id: "ml",        label: "ML Engineer",         icon: "🤖" },
+  { id: "devops",    label: "DevOps Engineer",      icon: "🛠️" },
+  { id: "hr",        label: "HR Round",            icon: "🤝" },
 ];
 
 const LEVELS = ["junior", "mid", "senior"] as const;
@@ -33,14 +35,62 @@ interface SessionState {
   answers: Record<string, string>;
 }
 
+const SESSION_DURATION_SEC = 30 * 60; // 30 minutes
+
+function useTimer(active: boolean) {
+  const [seconds, setSeconds] = useState(SESSION_DURATION_SEC);
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => setSeconds(s => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [active]);
+  const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+  const s = (seconds % 60).toString().padStart(2, "0");
+  return { display: `${m}:${s}`, expired: seconds === 0 };
+}
+
 export function InterviewClient() {
-  const [stage,    setStage]    = useState<Stage>("select");
-  const [role,     setRole]     = useState<string>("fullstack");
-  const [level,    setLevel]    = useState<string>("mid");
-  const [loading,  setLoading]  = useState(false);
-  const [session,  setSession]  = useState<SessionState | null>(null);
-  const [answer,   setAnswer]   = useState("");
-  const [results,  setResults]  = useState<{ score: number; feedback: string; breakdown: Record<string, number> } | null>(null);
+  const [stage,   setStage]   = useState<Stage>("select");
+  const [role,    setRole]    = useState<string>("fullstack");
+  const [level,   setLevel]   = useState<string>("mid");
+  const [loading, setLoading] = useState(false);
+  const [session, setSession] = useState<SessionState | null>(null);
+  const [answer,  setAnswer]  = useState("");
+  const [results, setResults] = useState<{ score: number; feedback: string; breakdown: Record<string, number> } | null>(null);
+  const [webcamOk,setWebcamOk]= useState(false);
+  const videoRef  = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const timer = useTimer(stage === "session");
+
+  // Auto-submit when timer expires
+  useEffect(() => {
+    if (timer.expired && stage === "session" && session) {
+      toast.error("Time's up! Submitting your answers.");
+      void handleFinish(session.answers);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timer.expired, stage]);
+
+  const requestWebcam = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      streamRef.current = stream;
+      if (videoRef.current) videoRef.current.srcObject = stream;
+      setWebcamOk(true);
+    } catch {
+      toast.error("Camera/microphone access denied. You can still proceed.");
+      setWebcamOk(true); // allow to proceed without webcam
+    }
+  }, []);
+
+  const stopWebcam = useCallback(() => {
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+  }, []);
+
+  // Clean up webcam on unmount
+  useEffect(() => () => stopWebcam(), [stopWebcam]);
 
   const startSession = useCallback(async () => {
     setLoading(true);
@@ -62,6 +112,26 @@ export function InterviewClient() {
     }
   }, [role, level]);
 
+  const handleFinish = useCallback(async (answers: Record<string, string>) => {
+    if (!session) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/interview/${session.sessionId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers, role, level }),
+      });
+      const data = await res.json();
+      setResults(data);
+      setStage("results");
+      stopWebcam();
+    } catch {
+      toast.error("Failed to submit. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [session, role, level, stopWebcam]);
+
   const submitAnswer = useCallback(async () => {
     if (!session || !answer.trim()) return;
     const q = session.questions[session.currentIndex];
@@ -69,189 +139,217 @@ export function InterviewClient() {
     const isLast = session.currentIndex === session.questions.length - 1;
 
     if (isLast) {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/interview/${session.sessionId}/complete`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ answers: newAnswers, role: session.questions[0]?.type ?? "fullstack", level: "mid" }),
-        });
-        const data = await res.json();
-        setResults(data);
-        setStage("results");
-      } catch {
-        toast.error("Failed to submit. Try again.");
-      } finally {
-        setLoading(false);
-      }
+      await handleFinish(newAnswers);
     } else {
       setSession({ ...session, currentIndex: session.currentIndex + 1, answers: newAnswers });
       setAnswer("");
     }
-  }, [session, answer]);
+  }, [session, answer, handleFinish]);
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-[var(--text-1)] tracking-tight">AI Interview 🤖</h1>
-        <p className="text-[var(--text-2)] mt-1 text-sm">Practice with AI. Get instant feedback. Land your dream job.</p>
-      </div>
+    <FullscreenGuard enabled={stage === "session"} sessionType="interview">
+      <div className="p-6 max-w-3xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-extrabold text-[var(--text-1)] tracking-tight">AI Interview 🤖</h1>
+          <p className="text-[var(--text-2)] mt-1 text-sm">Practice with AI. Get instant feedback. Land your dream job.</p>
+        </div>
 
-      <AnimatePresence mode="wait">
-        {/* ── Stage 1: Select Role ── */}
-        {stage === "select" && (
-          <motion.div key="select" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-            <div className="mb-6">
-              <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-3">Choose your role</div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {ROLES.map(r => (
-                  <button key={r.id} onClick={() => setRole(r.id)}
-                    className={`p-4 rounded-xl border text-left transition-all ${
-                      role === r.id
-                        ? "border-brand bg-brand/10 text-brand"
-                        : "border-[var(--border)] bg-[var(--bg-2)] text-[var(--text-1)] hover:border-brand/40"
-                    }`}>
-                    <div className="text-2xl mb-2">{r.icon}</div>
-                    <div className="text-xs font-bold">{r.label}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-8">
-              <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-3">Experience level</div>
-              <div className="flex rounded-xl border border-[var(--border)] overflow-hidden w-fit">
-                {LEVELS.map(l => (
-                  <button key={l} onClick={() => setLevel(l)}
-                    className={`px-6 py-2.5 text-xs font-bold capitalize transition-colors ${
-                      level === l ? "bg-brand text-white" : "bg-[var(--bg-2)] text-[var(--text-2)] hover:bg-[var(--bg-3)]"
-                    }`}>
-                    {l}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-[var(--bg-2)] rounded-2xl border border-[var(--border)] p-5 mb-6">
-              <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-3">Session overview</div>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                {[["5", "Questions"], ["~20 min", "Duration"], ["AI Scored", "Feedback"]].map(([val, lbl]) => (
-                  <div key={lbl}>
-                    <div className="text-xl font-extrabold text-brand">{val}</div>
-                    <div className="text-xs text-[var(--text-3)] mt-0.5">{lbl}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Button loading={loading} onClick={startSession} className="w-full">
-              Start Interview Session →
-            </Button>
-          </motion.div>
-        )}
-
-        {/* ── Stage 2: Session ── */}
-        {stage === "session" && session && (
-          <motion.div key="session" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-            {/* Progress */}
-            <div className="flex items-center gap-2 mb-6">
-              {session.questions.map((_, i) => (
-                <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${
-                  i < session.currentIndex ? "bg-brand" :
-                  i === session.currentIndex ? "bg-brand/60" :
-                  "bg-[var(--bg-3)]"
-                }`} />
-              ))}
-            </div>
-
-            <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">
-              Question {session.currentIndex + 1} of {session.questions.length}
-            </div>
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={session.currentIndex}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
-                <div className="bg-[var(--bg-2)] rounded-2xl border border-[var(--border)] p-5 mb-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
-                      session.questions[session.currentIndex]?.type === "coding"
-                        ? "text-blue-400 bg-blue-400/10 border-blue-400/20"
-                        : session.questions[session.currentIndex]?.type === "behavioral"
-                        ? "text-purple-400 bg-purple-400/10 border-purple-400/20"
-                        : "text-brand bg-brand/10 border-brand/20"
-                    }`}>
-                      {session.questions[session.currentIndex]?.type?.toUpperCase()}
-                    </span>
-                  </div>
-                  <p className="text-[var(--text-1)] font-semibold leading-relaxed">
-                    {session.questions[session.currentIndex]?.question}
-                  </p>
+        <AnimatePresence mode="wait">
+          {/* Stage 1: Select Role */}
+          {stage === "select" && (
+            <motion.div key="select" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <div className="mb-6">
+                <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-3">Choose your role</div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {ROLES.map(r => (
+                    <button key={r.id} onClick={() => setRole(r.id)}
+                      className={`p-4 rounded-xl border text-left transition-all ${
+                        role === r.id ? "border-brand bg-brand/10 text-brand" : "border-[var(--border)] bg-[var(--bg-2)] text-[var(--text-1)] hover:border-brand/40"
+                      }`}>
+                      <div className="text-2xl mb-2">{r.icon}</div>
+                      <div className="text-xs font-bold">{r.label}</div>
+                    </button>
+                  ))}
                 </div>
-
-                <textarea
-                  value={answer}
-                  onChange={e => setAnswer(e.target.value)}
-                  placeholder="Type your answer here…"
-                  rows={8}
-                  className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-2)] text-[var(--text-1)] text-sm outline-none focus:border-brand transition-colors resize-none font-mono mb-4"
-                />
-
-                <Button loading={loading} onClick={submitAnswer} disabled={!answer.trim()} className="w-full">
-                  {session.currentIndex === session.questions.length - 1 ? "Finish & Get Feedback →" : "Next Question →"}
-                </Button>
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
-        )}
-
-        {/* ── Stage 3: Results ── */}
-        {stage === "results" && results && (
-          <motion.div key="results" initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }}>
-            <div className="text-center mb-8">
-              <div className="text-6xl mb-4">
-                {results.score >= 80 ? "🎉" : results.score >= 60 ? "👍" : "💪"}
               </div>
-              <div className="text-5xl font-extrabold text-brand mb-2">{results.score}<span className="text-2xl text-[var(--text-3)]">/100</span></div>
-              <div className="text-[var(--text-2)] text-sm">Overall Interview Score</div>
-            </div>
 
-            <div className="bg-[var(--bg-2)] rounded-2xl border border-[var(--border)] p-5 mb-5">
-              <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-3">Score Breakdown</div>
-              <div className="space-y-3">
-                {Object.entries(results.breakdown ?? {}).map(([key, val]) => (
-                  <div key={key}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="font-semibold text-[var(--text-2)] capitalize">{key.replace("_", " ")}</span>
-                      <span className="font-bold text-brand">{val}%</span>
+              <div className="mb-6">
+                <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-3">Experience level</div>
+                <div className="flex rounded-xl border border-[var(--border)] overflow-hidden w-fit">
+                  {LEVELS.map(l => (
+                    <button key={l} onClick={() => setLevel(l)}
+                      className={`px-6 py-2.5 text-xs font-bold capitalize transition-colors ${
+                        level === l ? "bg-brand text-white" : "bg-[var(--bg-2)] text-[var(--text-2)] hover:bg-[var(--bg-3)]"
+                      }`}>{l}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-[var(--bg-2)] rounded-2xl border border-[var(--border)] p-5 mb-6">
+                <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-3">Session overview</div>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  {[["5", "Questions"], ["30 min", "Duration"], ["AI Scored", "Feedback"]].map(([val, lbl]) => (
+                    <div key={lbl}>
+                      <div className="text-xl font-extrabold text-brand">{val}</div>
+                      <div className="text-xs text-[var(--text-3)] mt-0.5">{lbl}</div>
                     </div>
-                    <div className="h-1.5 rounded-full bg-[var(--bg-3)] overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-brand to-brand/60"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${val}%` }}
-                        transition={{ duration: .8, ease: "easeOut" }}
-                      />
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-6 text-xs text-amber-300">
+                <span className="font-bold">⚠️ Anti-cheat notice:</span> Fullscreen mode will be enforced during the interview. Tab switching or exiting fullscreen will be flagged.
+              </div>
+
+              <Button loading={loading} onClick={() => setStage("webcam")} className="w-full">
+                Continue to Setup →
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Stage 1.5: Webcam setup */}
+          {stage === "webcam" && (
+            <motion.div key="webcam" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <div className="bg-[var(--bg-2)] rounded-2xl border border-[var(--border)] p-6 mb-6">
+                <h2 className="text-base font-bold text-[var(--text-1)] mb-4">Camera & Microphone Setup</h2>
+                <div className="aspect-video rounded-xl overflow-hidden bg-[var(--bg-3)] border border-[var(--border)] mb-4 flex items-center justify-center">
+                  {webcamOk ? (
+                    <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-center text-[var(--text-3)]">
+                      <div className="text-4xl mb-2">📷</div>
+                      <div className="text-sm">Camera preview will appear here</div>
                     </div>
+                  )}
+                </div>
+                {!webcamOk ? (
+                  <Button onClick={requestWebcam} className="w-full mb-3">
+                    Enable Camera & Microphone
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-2 text-emerald-400 text-sm font-semibold mb-3">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Camera & microphone ready
                   </div>
-                ))}
+                )}
+                <p className="text-xs text-[var(--text-3)]">
+                  Camera access helps ensure interview integrity. Your session is not recorded or stored externally.
+                </p>
               </div>
-            </div>
+              <div className="flex gap-3">
+                <Button variant="secondary" onClick={() => setStage("select")} className="flex-1">← Back</Button>
+                <Button loading={loading} onClick={startSession} className="flex-[2]">
+                  Start Interview →
+                </Button>
+              </div>
+            </motion.div>
+          )}
 
-            <div className="bg-[var(--bg-2)] rounded-2xl border border-[var(--border)] p-5 mb-6">
-              <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">AI Feedback</div>
-              <p className="text-sm text-[var(--text-2)] leading-relaxed">{results.feedback}</p>
-            </div>
+          {/* Stage 2: Session */}
+          {stage === "session" && session && (
+            <motion.div key="session" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              {/* Timer + progress */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 flex-1">
+                  {session.questions.map((_, i) => (
+                    <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${
+                      i < session.currentIndex ? "bg-brand" : i === session.currentIndex ? "bg-brand/60" : "bg-[var(--bg-3)]"
+                    }`} />
+                  ))}
+                </div>
+                <div className={`ml-4 font-mono text-sm font-bold px-3 py-1 rounded-lg flex-shrink-0 ${
+                  timer.display < "05:00" ? "text-red-400 bg-red-400/10 border border-red-400/20" : "text-[var(--text-2)] bg-[var(--bg-3)]"
+                }`}>
+                  ⏱ {timer.display}
+                </div>
+              </div>
 
-            <Button variant="secondary" onClick={() => { setStage("select"); setResults(null); setSession(null); setAnswer(""); }} className="w-full">
-              Try Another Session
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+              <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">
+                Question {session.currentIndex + 1} of {session.questions.length}
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div key={session.currentIndex} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                  <div className="bg-[var(--bg-2)] rounded-2xl border border-[var(--border)] p-5 mb-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                        session.questions[session.currentIndex]?.type === "coding"
+                          ? "text-blue-400 bg-blue-400/10 border-blue-400/20"
+                          : session.questions[session.currentIndex]?.type === "behavioral"
+                          ? "text-purple-400 bg-purple-400/10 border-purple-400/20"
+                          : "text-brand bg-brand/10 border-brand/20"
+                      }`}>
+                        {session.questions[session.currentIndex]?.type?.toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="text-[var(--text-1)] font-semibold leading-relaxed">
+                      {session.questions[session.currentIndex]?.question}
+                    </p>
+                  </div>
+
+                  <textarea
+                    value={answer}
+                    onChange={e => setAnswer(e.target.value)}
+                    placeholder="Type your answer here…"
+                    rows={8}
+                    className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-2)] text-[var(--text-1)] text-sm outline-none focus:border-brand transition-colors resize-none font-mono mb-4"
+                  />
+
+                  <Button loading={loading} onClick={submitAnswer} disabled={!answer.trim()} className="w-full">
+                    {session.currentIndex === session.questions.length - 1 ? "Finish & Get Feedback →" : "Next Question →"}
+                  </Button>
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
+          )}
+
+          {/* Stage 3: Results */}
+          {stage === "results" && results && (
+            <motion.div key="results" initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }}>
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">
+                  {results.score >= 80 ? "🎉" : results.score >= 60 ? "👍" : "💪"}
+                </div>
+                <div className="text-5xl font-extrabold text-brand mb-2">
+                  {Number(results.score ?? 0)}<span className="text-2xl text-[var(--text-3)]">/100</span>
+                </div>
+                <div className="text-[var(--text-2)] text-sm">Overall Interview Score</div>
+              </div>
+
+              <div className="bg-[var(--bg-2)] rounded-2xl border border-[var(--border)] p-5 mb-5">
+                <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-3">Score Breakdown</div>
+                <div className="space-y-3">
+                  {Object.entries(results.breakdown ?? {}).map(([key, val]) => (
+                    <div key={key}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-semibold text-[var(--text-2)] capitalize">{key.replace("_", " ")}</span>
+                        <span className="font-bold text-brand">{Number(val ?? 0)}%</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-[var(--bg-3)] overflow-hidden">
+                        <motion.div
+                          className="h-full rounded-full bg-gradient-to-r from-brand to-brand/60"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Number(val ?? 0)}%` }}
+                          transition={{ duration: .8, ease: "easeOut" }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-[var(--bg-2)] rounded-2xl border border-[var(--border)] p-5 mb-6">
+                <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">AI Feedback</div>
+                <p className="text-sm text-[var(--text-2)] leading-relaxed">{results.feedback ?? "No feedback available."}</p>
+              </div>
+
+              <Button variant="secondary" onClick={() => { setStage("select"); setResults(null); setSession(null); setAnswer(""); }} className="w-full">
+                Try Another Session
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </FullscreenGuard>
   );
 }

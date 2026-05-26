@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { Profile, Submission } from "@upgradian/types";
@@ -8,6 +8,7 @@ import { Card, RankBadge, DifficultyBadge, StatusBadge, XPBadge } from "@upgradi
 import { useGameStore } from "@/store/gameStore";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
+import { SEED_CHALLENGES } from "@/lib/challenges-seed";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -17,7 +18,7 @@ const fadeUp = {
 interface DashboardClientProps {
   profile: Profile | null;
   recentSubmissions: (Submission & { challenge?: { title: string; difficulty: string; slug: string } | null })[];
-  topPlayers: Pick<Profile, "username" | "full_name" | "xp" | "rank" | "avatar_url">[];
+  topPlayers: Pick<Profile, "username" | "full_name" | "total_xp" | "rank" | "avatar_url">[];
 }
 
 interface StatItem {
@@ -35,31 +36,99 @@ const STATS: StatItem[] = [
   { icon: "🎯", label: "Missions",   key: "missions_done",     color: "text-sky-400"   },
 ];
 
+function getDailyChallenge() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86400000);
+  return SEED_CHALLENGES[dayOfYear % SEED_CHALLENGES.length];
+}
+
+function useCountdown() {
+  const [timeLeft, setTimeLeft] = useState("");
+  useEffect(() => {
+    function update() {
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      const ms = midnight.getTime() - Date.now();
+      const h = Math.floor(ms / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      setTimeLeft(`${h}h ${m}m ${s}s`);
+    }
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
+  return timeLeft;
+}
+
 export function DashboardClient({ profile, recentSubmissions, topPlayers }: DashboardClientProps) {
   const { setFromProfile, xp, rank, nextRankInfo } = useGameStore();
+  const timeLeft = useCountdown();
 
   useEffect(() => {
-    if (profile) setFromProfile(profile.xp, profile.streak_days);
+    if (profile) {
+      setFromProfile(Number(profile.total_xp ?? 0), Number(profile.streak_days ?? 0));
+    }
   }, [profile, setFromProfile]);
 
   const { next, needed, progress } = nextRankInfo();
 
-  const challengesSolved = (profile as unknown as Record<string, number>)?.challenges_solved ?? 0;
+  const safeXP        = Number(xp ?? 0);
+  const safeNeeded    = Number(needed ?? 0);
+  const safeProgress  = Number(progress ?? 0);
+  const challengesSolved = Number((profile as Record<string, number> | null)?.challenges_solved ?? 0);
   const profileComplete  = !!(profile?.full_name);
+  const dailyChallenge   = getDailyChallenge();
+
+  const safeSubmissions = Array.isArray(recentSubmissions) ? recentSubmissions : [];
+  const safePlayers     = Array.isArray(topPlayers) ? topPlayers : [];
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Welcome */}
       <motion.div variants={fadeUp} initial="hidden" animate="show">
         <h1 className="text-2xl font-extrabold text-[var(--text-1)] tracking-tight">
-          Welcome back, {profile?.full_name?.split(" ")[0] ?? profile?.username} 👋
+          Welcome back, {profile?.full_name?.split(" ")?.[0] ?? profile?.username ?? "Coder"} 👋
         </h1>
         <p className="text-[var(--text-2)] mt-1 text-sm">
-          Keep pushing — you&apos;re {(needed ?? 0).toLocaleString()} XP away from {next ?? "the top"}.
+          Keep pushing — you&apos;re {safeNeeded.toLocaleString()} XP away from {next ?? "the top"}.
         </p>
       </motion.div>
 
-      {/* Onboarding checklist — hides automatically once all tasks done or dismissed */}
+      {/* Daily Challenge */}
+      {dailyChallenge && (
+        <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: .02 }}>
+          <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/20 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📅</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-400">Daily Challenge</span>
+              </div>
+              <div className="text-xs text-[var(--text-3)] font-mono tabular-nums">Resets in {timeLeft}</div>
+            </div>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-base font-bold text-[var(--text-1)] mb-1">{dailyChallenge.title}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <DifficultyBadge difficulty={dailyChallenge.difficulty} />
+                  <span className="text-xs font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md">
+                    +{(dailyChallenge.xp_reward ?? 0) * 2} XP bonus
+                  </span>
+                </div>
+              </div>
+              <Link
+                href={`/arena/${dailyChallenge.slug}`}
+                className="flex-shrink-0 px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 text-xs font-bold transition-colors whitespace-nowrap"
+              >
+                Solve Now →
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Onboarding checklist */}
       <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: .04 }}>
         <OnboardingChecklist
           challengesSolved={challengesSolved}
@@ -74,14 +143,14 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-3xl font-extrabold text-[var(--text-1)] tracking-tight">
-                {(xp ?? 0).toLocaleString()} <span className="text-brand text-xl">XP</span>
+                {safeXP.toLocaleString()} <span className="text-brand text-xl">XP</span>
               </div>
               <RankBadge rank={rank} className="mt-1.5" />
             </div>
             {next && (
               <div className="text-right">
                 <div className="text-xs text-[var(--text-3)] mb-1">Next: {next}</div>
-                <div className="text-sm font-bold text-[var(--text-2)]">{(needed ?? 0).toLocaleString()} XP needed</div>
+                <div className="text-sm font-bold text-[var(--text-2)]">{safeNeeded.toLocaleString()} XP needed</div>
               </div>
             )}
           </div>
@@ -89,7 +158,7 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
             <motion.div
               className="h-full bg-gradient-to-r from-brand to-brand-dark rounded-full"
               initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
+              animate={{ width: `${Math.min(safeProgress, 100)}%` }}
               transition={{ duration: 1, ease: "easeOut", delay: .3 }}
             />
           </div>
@@ -109,7 +178,7 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
             <Card hover padding="sm" className="text-center">
               <div className="text-2xl mb-1">{s.icon}</div>
               <div className={`text-2xl font-extrabold ${s.color}`}>
-                {(profile as unknown as Record<string, number>)?.[s.key] ?? 0}{s.suffix ?? ""}
+                {Number((profile as Record<string, number> | null)?.[s.key] ?? 0)}{s.suffix ?? ""}
               </div>
               <div className="text-xs text-[var(--text-3)] font-semibold uppercase tracking-wider mt-0.5">
                 {s.label}
@@ -129,7 +198,7 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
             </Link>
           </div>
           <Card padding="none">
-            {recentSubmissions.length === 0 ? (
+            {safeSubmissions.length === 0 ? (
               <EmptyState
                 icon="⚔️"
                 title="No submissions yet"
@@ -139,28 +208,28 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
               />
             ) : (
               <div className="divide-y divide-[var(--border)]">
-                {recentSubmissions.map((sub) => (
+                {safeSubmissions.map((sub) => (
                   <div
-                    key={sub.id}
+                    key={sub.id ?? Math.random()}
                     className="flex items-center justify-between px-4 py-3 hover:bg-[var(--bg-2)] transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <StatusBadge status={sub.status} />
+                      <StatusBadge status={sub.status ?? "pending"} />
                       <div className="min-w-0">
                         <Link
-                          href={`/arena/${sub.challenge?.slug}`}
+                          href={sub.challenge?.slug ? `/arena/${sub.challenge.slug}` : "/arena"}
                           className="text-sm font-semibold text-[var(--text-1)] hover:text-brand truncate block transition-colors"
                         >
-                          {sub.challenge?.title ?? "—"}
+                          {sub.challenge?.title ?? "Unknown Challenge"}
                         </Link>
-                        <span className="text-xs text-[var(--text-3)]">{sub.language}</span>
+                        <span className="text-xs text-[var(--text-3)]">{sub.language ?? ""}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {sub.challenge && (
                         <DifficultyBadge difficulty={sub.challenge.difficulty as "easy" | "medium" | "hard"} />
                       )}
-                      {sub.xp_earned > 0 && <XPBadge xp={sub.xp_earned} />}
+                      {Number(sub.xp_earned ?? 0) > 0 && <XPBadge xp={Number(sub.xp_earned)} />}
                     </div>
                   </div>
                 ))}
@@ -178,7 +247,7 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
             </Link>
           </div>
           <Card padding="none">
-            {topPlayers.length === 0 ? (
+            {safePlayers.length === 0 ? (
               <EmptyState
                 icon="🏆"
                 title="Leaderboard loading"
@@ -187,24 +256,26 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
               />
             ) : (
               <div className="divide-y divide-[var(--border)]">
-                {topPlayers.map((p, i) => (
+                {safePlayers.map((p, i) => (
                   <div
-                    key={p.username}
+                    key={p.username ?? i}
                     className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--bg-2)] transition-colors"
                   >
                     <span className="text-sm font-extrabold w-5 text-center text-[var(--text-3)]">
                       {i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
                     </span>
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {(p.full_name ?? p.username)[0]}
+                      {(p.full_name ?? p.username ?? "?")[0]?.toUpperCase() ?? "?"}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-[var(--text-1)] truncate">
-                        {p.full_name ?? p.username}
+                        {p.full_name ?? p.username ?? "Anonymous"}
                       </div>
                       <RankBadge rank={p.rank as Profile["rank"]} showEmoji={false} className="text-[10px] mt-0.5" />
                     </div>
-                    <div className="text-sm font-extrabold text-brand">{(p.xp ?? 0).toLocaleString()} XP</div>
+                    <div className="text-sm font-extrabold text-brand">
+                      {Number(p.total_xp ?? 0).toLocaleString()} XP
+                    </div>
                   </div>
                 ))}
               </div>

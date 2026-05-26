@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Loader2, Bot, Minimize2 } from "lucide-react";
+import { Send, Loader2, Bot, Minimize2, Phone } from "lucide-react";
 
 interface Message {
   role: "user" | "model";
@@ -20,6 +20,8 @@ const SUGGESTIONS = [
   "What is the practice platform?",
 ];
 
+const WHATSAPP_URL = "https://wa.me/918553451935?text=Hi%2C%20I%20need%20help%20with%20Upgradian.";
+
 function TypingDots() {
   return (
     <div className="flex items-center gap-1 py-1 px-0.5">
@@ -27,10 +29,7 @@ function TypingDots() {
         <span
           key={i}
           className="w-1.5 h-1.5 rounded-full"
-          style={{
-            background: "#6c8aff",
-            animation: `chatDot 1.2s ease-in-out ${i * 0.2}s infinite`,
-          }}
+          style={{ background: "#6c8aff", animation: `chatDot 1.2s ease-in-out ${i * 0.2}s infinite` }}
         />
       ))}
     </div>
@@ -79,7 +78,7 @@ export function ChatWidget() {
       });
 
       const data = await res.json();
-      const replyText = data.text ?? (data.error ? null : null);
+      const replyText = data.text ?? null;
       setMessages(prev => [...prev, {
         role: "model",
         text: replyText ?? "I'm having a moment — please email us at career@upgradians.com or try again shortly.",
@@ -103,10 +102,7 @@ export function ChatWidget() {
           onClick={() => setOpen(true)}
           aria-label="Open AI chat assistant"
           className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95"
-          style={{
-            background: "linear-gradient(135deg, #4361ee, #7c3aed)",
-            boxShadow: "0 8px 32px rgba(67,97,238,0.45), 0 0 0 1px rgba(67,97,238,0.4)",
-          }}
+          style={{ background: "linear-gradient(135deg, #4361ee, #7c3aed)", boxShadow: "0 8px 32px rgba(67,97,238,0.45), 0 0 0 1px rgba(67,97,238,0.4)" }}
         >
           <Bot className="w-6 h-6 text-white" strokeWidth={1.5} />
           <span className="absolute top-0 right-0 w-3 h-3 rounded-full border-2 border-[#000008]" style={{ background: "#10b981" }} />
@@ -117,23 +113,12 @@ export function ChatWidget() {
       {open && (
         <div
           className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-24px)] rounded-3xl overflow-hidden shadow-2xl"
-          style={{
-            background: "rgba(7,7,15,0.98)",
-            border: "1px solid rgba(255,255,255,0.09)",
-            backdropFilter: "blur(20px)",
-            animation: "chatSlideUp 0.25s cubic-bezier(0.22,1,0.36,1) forwards",
-          }}
+          style={{ background: "rgba(7,7,15,0.98)", border: "1px solid rgba(255,255,255,0.09)", backdropFilter: "blur(20px)", animation: "chatSlideUp 0.25s cubic-bezier(0.22,1,0.36,1) forwards" }}
         >
           {/* Header */}
-          <div
-            className="flex items-center justify-between px-4 py-3"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(67,97,238,0.08)" }}
-          >
+          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(67,97,238,0.08)" }}>
             <div className="flex items-center gap-3">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, #4361ee, #7c3aed)" }}
-              >
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #4361ee, #7c3aed)" }}>
                 <Bot className="w-4 h-4 text-white" strokeWidth={1.5} />
               </div>
               <div>
@@ -144,14 +129,24 @@ export function ChatWidget() {
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => setOpen(false)}
-              aria-label="Close chat"
-              className="p-1.5 rounded-lg transition-all hover:bg-white/[0.07]"
-              style={{ color: "rgba(255,255,255,0.4)" }}
-            >
-              <Minimize2 className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              {/* Talk to Human */}
+              <a
+                href={WHATSAPP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Talk to a human on WhatsApp"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all hover:-translate-y-px"
+                style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.25)", color: "#10b981" }}
+              >
+                <Phone className="w-3 h-3" />
+                Human
+              </a>
+              <button onClick={() => setOpen(false)} aria-label="Close chat"
+                className="p-1.5 rounded-lg transition-all hover:bg-white/[0.07] ml-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <Minimize2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Messages */}
@@ -166,13 +161,9 @@ export function ChatWidget() {
                 <div
                   className="max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed"
                   style={m.role === "user" ? {
-                    background: "linear-gradient(135deg, #4361ee, #7c3aed)",
-                    color: "white",
-                    borderBottomRightRadius: "4px",
+                    background: "linear-gradient(135deg, #4361ee, #7c3aed)", color: "white", borderBottomRightRadius: "4px",
                   } : {
-                    background: "rgba(255,255,255,0.07)",
-                    color: "rgba(255,255,255,0.85)",
-                    borderBottomLeftRadius: "4px",
+                    background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.85)", borderBottomLeftRadius: "4px",
                   }}
                 >
                   {m.text}
@@ -192,21 +183,28 @@ export function ChatWidget() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Suggestions (only show when one message in history) */}
+          {/* Suggestions */}
           {messages.length === 1 && (
             <div className="px-4 py-2 flex flex-wrap gap-1.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
               {SUGGESTIONS.map(s => (
-                <button
-                  key={s}
-                  onClick={() => send(s)}
+                <button key={s} onClick={() => send(s)}
                   className="text-[11px] px-2.5 py-1 rounded-full transition-all hover:bg-white/[0.1] hover:text-white"
-                  style={{ border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", background: "transparent" }}
-                >
+                  style={{ border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", background: "transparent" }}>
                   {s}
                 </button>
               ))}
             </div>
           )}
+
+          {/* Talk to Human banner */}
+          <div className="px-4 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(16,185,129,0.04)" }}>
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 text-[11px] font-semibold transition-colors hover:text-emerald-300"
+              style={{ color: "rgba(16,185,129,0.7)" }}>
+              <Phone className="w-3 h-3" />
+              Need more help? Talk to a human on WhatsApp →
+            </a>
+          </div>
 
           {/* Input */}
           <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
@@ -221,13 +219,9 @@ export function ChatWidget() {
                 disabled={loading}
                 className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/25 disabled:opacity-50"
               />
-              <button
-                onClick={() => send(input)}
-                disabled={loading || !input.trim()}
-                aria-label="Send message"
+              <button onClick={() => send(input)} disabled={loading || !input.trim()} aria-label="Send message"
                 className="w-7 h-7 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 hover:scale-105 active:scale-95 flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #4361ee, #7c3aed)" }}
-              >
+                style={{ background: "linear-gradient(135deg, #4361ee, #7c3aed)" }}>
                 {loading ? <Loader2 className="w-3.5 h-3.5 text-white animate-spin" /> : <Send className="w-3.5 h-3.5 text-white" />}
               </button>
             </div>

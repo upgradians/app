@@ -7,7 +7,7 @@ const RECRUITER_PATHS = ["/recruiter"];
 const ADMIN_PATHS     = ["/admin"];
 
 // Only this UID can access /admin routes regardless of database role.
-const ADMIN_UID = "106de8ef-19ea-47b1-8217-476461f4060f";
+const ADMIN_UID = "c57b661e-eec0-4926-a7bd-88209e45979b";
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
   // Admin route protection — UID-first check, no DB query needed
   if (user && ADMIN_PATHS.some(p => pathname.startsWith(p))) {
     if (user.id !== ADMIN_UID) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/", request.url));
     }
   }
 

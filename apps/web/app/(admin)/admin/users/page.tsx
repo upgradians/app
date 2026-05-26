@@ -8,7 +8,7 @@ export default async function AdminUsersPage() {
   const supabase = await createClient();
   const { data: users } = await supabase
     .from("profiles")
-    .select("id,full_name,username,xp,rank,role,created_at")
+    .select("id,full_name,username,total_xp,rank,role,created_at")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -39,7 +39,7 @@ export default async function AdminUsersPage() {
                 <div className="text-xs text-[var(--text-3)]">@{u.username}</div>
               </div>
               <div className="hidden sm:flex items-center gap-3 text-xs text-[var(--text-3)]">
-                <span className="font-bold text-brand tabular-nums">{(u.xp ?? 0).toLocaleString()} XP</span>
+                <span className="font-bold text-brand tabular-nums">{Number((u as Record<string, number>).total_xp ?? 0).toLocaleString()} XP</span>
                 <span className="px-2 py-0.5 rounded-full bg-[var(--bg-3)] border border-[var(--border)]">{u.rank ?? "—"}</span>
                 {u.role !== "student" && (
                   <span className="px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 uppercase tracking-wider font-bold">

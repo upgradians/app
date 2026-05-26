@@ -64,3 +64,4 @@ dist/
 # supabase
 supabase/.branches/
 supabase/.temp/
+.vercel

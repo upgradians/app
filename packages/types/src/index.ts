@@ -21,14 +21,25 @@ export interface Profile {
   bio: string | null;
   college: string | null;
   role: UserRole;
-  xp: number;
+  total_xp: number;
   rank: GalaxyRank;
   streak_days: number;
-  last_active: string | null;
+  last_active_at: string | null;
   github_url: string | null;
   linkedin_url: string | null;
   created_at: string;
   updated_at: string;
+  // Extended onboarding fields
+  phone_number?: string | null;
+  address?: string | null;
+  nationality?: string | null;
+  qualification?: string | null;
+  experience_level?: string | null;
+  challenges_solved?: number;
+  contests_won?: number;
+  missions_done?: number;
+  last_streak_date?: string | null;
+  solved_seed_ids?: string[];
 }
 
 export interface Challenge {
@@ -256,14 +267,14 @@ export interface Application {
 // ─── Leaderboard ──────────────────────────────────────────────────────────────
 
 export interface LeaderboardEntry {
-  rank: number;
+  position?: number;
   user_id: string;
   username: string;
   full_name: string | null;
   avatar_url: string | null;
   college: string | null;
-  xp: number;
-  galaxy_rank: GalaxyRank;
+  total_xp: number;
+  rank: GalaxyRank;
   challenges_solved: number;
   streak_days: number;
 }
