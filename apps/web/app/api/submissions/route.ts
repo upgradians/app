@@ -1,226 +1,94 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { SEED_CHALLENGES } from "@/lib/challenges-seed";
+import { pistonRun, PISTON_LANGS, type ExecStatus } from "@/lib/piston";
+import { getRankFromXP } from "@upgradian/types";
 
-// Extend Vercel function timeout to 60s (requires Pro plan; ignored on hobby)
 export const maxDuration = 60;
 
-// ─── Configuration ────────────────────────────────────────────────────────────
-// Support both JUDGE0_API_URL (user-facing name) and JUDGE0_URL (legacy)
-const JUDGE0_BASE = (process.env.JUDGE0_API_URL ?? process.env.JUDGE0_URL ?? "").replace(/\/$/, "");
-const JUDGE0_KEY  = process.env.JUDGE0_API_KEY ?? "";
-const IS_RAPID    = JUDGE0_BASE.includes("rapidapi.com");
-
-// ─── Language Map ─────────────────────────────────────────────────────────────
-const JUDGE0_LANG: Record<string, number> = {
-  python:     71,
-  javascript: 63,
-  typescript: 74,
-  java:       62,
-  cpp:        54,
-  c:          50,
-  go:         60,
-  rust:       73,
-  csharp:     51,
-  kotlin:     78,
-  php:        68,
-  ruby:       72,
-  swift:      83,
-};
-
-// ─── Judge0 Status IDs ────────────────────────────────────────────────────────
-// 1=In Queue  2=Processing  3=Accepted  4=Wrong Answer  5=TLE
-// 6=Compile Error  7-14=Runtime Error variants
-type ExecStatus = "accepted" | "wrong_answer" | "time_limit" | "compile_error" | "runtime_error";
-
-function mapJ0Status(id: number): ExecStatus | "pending" {
-  if (id <= 2) return "pending";
-  if (id === 3) return "accepted";
-  if (id === 4) return "wrong_answer";
-  if (id === 5) return "time_limit";
-  if (id === 6) return "compile_error";
-  return "runtime_error"; // 7–14
-}
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-interface J0Result {
-  token?: string;
-  status: { id: number; description: string };
-  stdout: string | null;
-  stderr: string | null;
-  compile_output: string | null;
-  time: string | null;
-  memory: number | null;
-  message?: string | null;
-}
+// ─── Submission cooldown (anti-spam) ─────────────────────────────────────────
+const COOLDOWN_MS = 5_000; // 5 seconds between graded submissions
 
 interface TestCaseItem {
-  input: string;
+  input:           string;
   expected_output: string;
-  is_hidden?: boolean;
+  is_hidden?:      boolean;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function getHeaders(): Record<string, string> {
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  if (IS_RAPID) {
-    h["X-RapidAPI-Key"]  = JUDGE0_KEY;
-    h["X-RapidAPI-Host"] = "judge0-ce.p.rapidapi.com";
-  } else {
-    h["X-Auth-Token"] = JUDGE0_KEY;
-  }
-  return h;
-}
-
-const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
-
-// ─── Judge0 Submit (async, no wait) ──────────────────────────────────────────
-async function j0Submit(code: string, langId: number, stdin: string): Promise<string> {
-  const res = await fetch(`${JUDGE0_BASE}/submissions?base64_encoded=false`, {
-    method:  "POST",
-    headers: getHeaders(),
-    body:    JSON.stringify({ source_code: code, language_id: langId, stdin }),
-    signal:  AbortSignal.timeout(15_000),
-  });
-
-  if (res.status === 429) {
-    throw new Error("Judge0 rate limit exceeded — please wait a moment and retry.");
-  }
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`Judge0 submit HTTP ${res.status}: ${body.slice(0, 300)}`);
-  }
-
-  const data: J0Result = await res.json();
-  if (!data.token) throw new Error("Judge0 returned no submission token");
-  return data.token;
-}
-
-// ─── Judge0 Poll ──────────────────────────────────────────────────────────────
-async function j0Poll(token: string): Promise<J0Result> {
-  const fields = "status,stdout,stderr,compile_output,time,memory,message";
-  for (let i = 0; i < 24; i++) {
-    await sleep(Math.min(800 + i * 400, 3000));
-    try {
-      const res = await fetch(
-        `${JUDGE0_BASE}/submissions/${token}?base64_encoded=false&fields=${fields}`,
-        { headers: getHeaders(), signal: AbortSignal.timeout(10_000) },
-      );
-      if (!res.ok) continue; // transient error — keep polling
-      const data: J0Result = await res.json();
-      if (mapJ0Status(data.status.id) !== "pending") return data;
-    } catch {
-      // network hiccup — continue polling
-    }
-  }
-  throw new Error("Execution timed out waiting for Judge0 result (>30s)");
-}
-
-// ─── Submit + Poll with Retry ─────────────────────────────────────────────────
-async function j0Run(code: string, langId: number, stdin: string, attempt = 0): Promise<J0Result> {
-  try {
-    const token = await j0Submit(code, langId, stdin);
-    return await j0Poll(token);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    // Don't retry rate-limit or client errors (4xx)
-    if (msg.includes("rate limit") || /HTTP 4\d\d/.test(msg)) throw err;
-    if (attempt < 2) {
-      console.warn(`[submissions] Judge0 attempt ${attempt + 1} failed: ${msg}`);
-      await sleep(1500 * (attempt + 1));
-      return j0Run(code, langId, stdin, attempt + 1);
-    }
-    throw err;
-  }
-}
-
-// ─── Run All Test Cases ───────────────────────────────────────────────────────
 interface RunAllResult {
-  status:   ExecStatus;
-  output:   string;
+  status:    ExecStatus;
+  output:    string; // safe to show user (no hidden test case leakage)
   runtimeMs: number;
-  memoryMb:  number;
+  passedCount: number;
+  totalCount:  number;
 }
 
-async function runAllTestCases(
-  code: string, langId: number, testCases: TestCaseItem[]
+// ─── Run every test case through Piston ──────────────────────────────────────
+async function runTestCases(
+  code:      string,
+  language:  string,
+  testCases: TestCaseItem[],
 ): Promise<RunAllResult> {
   let totalRuntime = 0;
-  let totalMemory  = 0;
+  let passedCount  = 0;
 
   for (let i = 0; i < testCases.length; i++) {
     const tc = testCases[i];
-    let r: J0Result;
+    let r;
 
     try {
-      r = await j0Run(code, langId, tc.input ?? "");
+      r = await pistonRun(code, language, tc.input ?? "");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Execution service error.";
-      console.error(`[submissions] Test case ${i + 1} execution error:`, err);
-      return { status: "runtime_error", output: msg, runtimeMs: 0, memoryMb: 0 };
+      console.error(`[submissions] Piston error on test ${i + 1}:`, err);
+      return { status: "runtime_error", output: msg,
+        runtimeMs: totalRuntime, passedCount, totalCount: testCases.length };
     }
 
-    const sid = r.status.id;
-    totalRuntime += parseFloat(r.time   ?? "0") * 1000;
-    totalMemory  += (r.memory ?? 0) / 1024;
+    totalRuntime += r.runtimeMs;
 
-    // Compile error — stop immediately, show full output
-    if (sid === 6) {
-      const out = (r.compile_output ?? "").trim() || "Compilation failed.";
-      console.info(`[submissions] Compile error on test ${i + 1}`);
-      return { status: "compile_error", output: out, runtimeMs: 0, memoryMb: 0 };
+    // ── Hard failures — stop immediately ──
+    if (r.status === "compile_error") {
+      // Always show compile output regardless of hidden status
+      return { status: "compile_error", output: r.stderr || "Compilation failed.",
+        runtimeMs: 0, passedCount, totalCount: testCases.length };
     }
 
-    // Time Limit Exceeded
-    if (sid === 5) {
-      const out = tc.is_hidden
-        ? `Time limit exceeded on hidden test case ${i + 1}.`
-        : "Time limit exceeded.";
+    if (r.status === "time_limit") {
+      const out = tc.is_hidden ? `Time limit exceeded on hidden test case ${i + 1}.` : r.stderr;
       return { status: "time_limit", output: out,
-        runtimeMs: Math.round(totalRuntime), memoryMb: totalMemory };
+        runtimeMs: totalRuntime, passedCount, totalCount: testCases.length };
     }
 
-    // Runtime errors (7–14)
-    if (sid >= 7) {
+    if (r.status === "runtime_error") {
       const out = tc.is_hidden
         ? `Runtime error on hidden test case ${i + 1}.`
-        : ((r.stderr ?? r.message ?? "").trim() || `Runtime error (${r.status.description}).`);
+        : (r.stderr || `Runtime error on test ${i + 1}.`);
       return { status: "runtime_error", output: out,
-        runtimeMs: Math.round(totalRuntime), memoryMb: totalMemory };
+        runtimeMs: totalRuntime, passedCount, totalCount: testCases.length };
     }
 
-    // Wrong answer from executor (sid === 4)
-    if (sid === 4) {
+    // ── Output comparison (status === "accepted" from Piston) ──
+    const expected = (tc.expected_output ?? "").trim();
+    const actual   = r.stdout.trim();
+
+    if (expected && actual !== expected) {
       const out = tc.is_hidden
         ? `Wrong answer on hidden test case ${i + 1}.`
-        : (r.stdout ?? "Wrong answer.");
+        : `Wrong answer on test ${i + 1}.\n\nExpected:\n${expected}\n\nGot:\n${actual}`;
       return { status: "wrong_answer", output: out,
-        runtimeMs: Math.round(totalRuntime), memoryMb: totalMemory };
+        runtimeMs: totalRuntime, passedCount, totalCount: testCases.length };
     }
 
-    // sid === 3 (Accepted by executor) — verify expected output
-    if (tc.expected_output) {
-      const expected = tc.expected_output.trim();
-      const actual   = (r.stdout ?? "").trim();
-      if (actual !== expected) {
-        const out = tc.is_hidden
-          ? `Wrong answer on hidden test case ${i + 1}.`
-          : `Expected:\n${expected}\n\nGot:\n${actual}`;
-        return { status: "wrong_answer", output: out,
-          runtimeMs: Math.round(totalRuntime), memoryMb: totalMemory };
-      }
-    }
-
-    // This test case passed — continue
+    passedCount++;
   }
 
-  // All test cases passed
-  const n = Math.max(testCases.length, 1);
   return {
-    status:    "accepted",
-    output:    "",
-    runtimeMs: Math.round(totalRuntime / n),
-    memoryMb:  totalMemory / n,
+    status:      "accepted",
+    output:      "",
+    runtimeMs:   Math.round(totalRuntime / Math.max(testCases.length, 1)),
+    passedCount: testCases.length,
+    totalCount:  testCases.length,
   };
 }
 
@@ -230,80 +98,97 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Parse body
+  // ── Parse body ──
   let body: { challenge_id?: string; code?: string; language?: string };
   try { body = await request.json(); }
   catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
   const { challenge_id, code, language } = body;
-  if (!challenge_id || !code || !language) {
-    return NextResponse.json({ error: "Missing required fields: challenge_id, code, language" }, { status: 400 });
-  }
 
-  // Validate language
-  const langId = JUDGE0_LANG[language];
-  if (!langId) {
+  // ── Input validation ──
+  if (!challenge_id) {
+    return NextResponse.json({ error: "challenge_id is required." }, { status: 400 });
+  }
+  if (!code?.trim()) {
+    return NextResponse.json({ error: "Code cannot be empty." }, { status: 400 });
+  }
+  if (!language) {
+    return NextResponse.json({ error: "Language is required." }, { status: 400 });
+  }
+  if (!(language in PISTON_LANGS)) {
     return NextResponse.json({
-      error: `Unsupported language: "${language}". Supported: ${Object.keys(JUDGE0_LANG).join(", ")}`,
+      error: `Unsupported language "${language}". Supported: ${Object.keys(PISTON_LANGS).join(", ")}`,
     }, { status: 400 });
   }
 
-  // Validate Judge0 is configured
-  if (!JUDGE0_BASE || !JUDGE0_KEY) {
-    console.error("[submissions] JUDGE0_API_URL or JUDGE0_API_KEY not configured");
-    return NextResponse.json(
-      { error: "Code execution service is not configured. Contact the administrator." },
-      { status: 503 },
-    );
+  // ── Anti-spam cooldown (DB challenges only) ──
+  const isSeed = challenge_id.startsWith("seed-");
+  if (!isSeed) {
+    const { data: recent } = await supabase
+      .from("submissions")
+      .select("submitted_at")
+      .eq("user_id", user.id)
+      .order("submitted_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (recent?.submitted_at) {
+      const elapsed = Date.now() - new Date(recent.submitted_at).getTime();
+      if (elapsed < COOLDOWN_MS) {
+        const wait = Math.ceil((COOLDOWN_MS - elapsed) / 1000);
+        return NextResponse.json(
+          { error: `Please wait ${wait}s before submitting again.` },
+          { status: 429 },
+        );
+      }
+    }
   }
 
-  // ── Load challenge + ALL test cases (including hidden) ──
-  const isSeed = challenge_id.startsWith("seed-");
-  const seed   = isSeed ? SEED_CHALLENGES.find(c => c.id === challenge_id) : null;
-
+  // ── Load challenge + ALL test cases (hidden included) ──
+  const seed = isSeed ? SEED_CHALLENGES.find(c => c.id === challenge_id) : null;
   let challengeDbId: string | null = null;
-  let xpReward  = 50;
+  let xpReward = 50;
   let testCases: TestCaseItem[] = [];
 
   if (isSeed && seed) {
     xpReward  = seed.xp_reward ?? 50;
     testCases = (seed.test_cases ?? []) as TestCaseItem[];
   } else if (!isSeed) {
-    const { data: challenge, error: chErr } = await supabase
+    const { data: ch, error: chErr } = await supabase
       .from("challenges")
       .select("id,xp_reward")
       .eq("id", challenge_id)
       .single();
 
-    if (chErr || !challenge) {
-      return NextResponse.json({ error: "Challenge not found" }, { status: 404 });
+    if (chErr || !ch) {
+      return NextResponse.json({ error: "Challenge not found." }, { status: 404 });
     }
 
-    challengeDbId = challenge.id;
-    xpReward      = challenge.xp_reward ?? 50;
+    challengeDbId = ch.id;
+    xpReward      = ch.xp_reward ?? 50;
 
     const { data: tcs } = await supabase
       .from("test_cases")
       .select("input,expected_output,is_hidden")
-      .eq("challenge_id", challenge.id)
+      .eq("challenge_id", ch.id)
       .order("order_index");
 
     testCases = (tcs ?? []) as TestCaseItem[];
   } else {
-    return NextResponse.json({ error: "Challenge not found" }, { status: 404 });
+    return NextResponse.json({ error: "Challenge not found." }, { status: 404 });
   }
 
-  // Ensure at least one test case
   if (testCases.length === 0) {
     testCases = [{ input: "", expected_output: "", is_hidden: false }];
   }
 
-  // ── Execute against all test cases ──
-  const exec = await runAllTestCases(code, langId, testCases);
-  const xpEarned = exec.status === "accepted" ? xpReward : 0;
-  const memoryMb = parseFloat(exec.memoryMb.toFixed(2));
+  // ── Execute all test cases via Piston ──
+  const exec = await runTestCases(code, language, testCases);
 
-  // ── Persist submission to DB (non-seed challenges) ──
+  // XP only for a clean accepted run
+  const xpEarned = exec.status === "accepted" ? xpReward : 0;
+
+  // ── Persist submission (DB challenges only) ──
   let submissionId: string | undefined;
   if (!isSeed && challengeDbId) {
     const { data: saved, error: saveErr } = await supabase
@@ -315,31 +200,30 @@ export async function POST(request: Request) {
         language,
         status:       exec.status,
         runtime_ms:   exec.runtimeMs,
-        memory_mb:    memoryMb,
+        memory_mb:    null, // Piston does not expose memory usage
         xp_earned:    xpEarned,
       })
       .select("id")
       .single();
 
-    if (saveErr) {
-      console.error("[submissions] Failed to save submission:", saveErr);
-    }
+    if (saveErr) console.error("[submissions] Save error:", saveErr);
     submissionId = saved?.id;
   }
 
-  // ── XP + Streak + Profile updates on first-time accepted ──
+  // ── Profile updates on accepted + XP earned ──
   if (exec.status === "accepted" && xpEarned > 0) {
+    // ── First-solve gate (prevents XP farming) ──
     let isFirstSolve = false;
 
     if (isSeed) {
-      const { data: prof } = await supabase
+      const { data: p } = await supabase
         .from("profiles")
         .select("solved_seed_ids")
         .eq("id", user.id)
         .single();
-      const existing: string[] = prof?.solved_seed_ids ?? [];
-      isFirstSolve = !existing.includes(challenge_id);
+      isFirstSolve = !(p?.solved_seed_ids ?? []).includes(challenge_id);
     } else if (challengeDbId) {
+      // Count accepted submissions for this challenge; we just inserted one so threshold is 1
       const { count } = await supabase
         .from("submissions")
         .select("id", { count: "exact", head: true })
@@ -349,29 +233,45 @@ export async function POST(request: Request) {
       isFirstSolve = (count ?? 0) <= 1;
     }
 
-    try {
-      await supabase.rpc("add_xp_to_profile", { p_user_id: user.id, p_xp: xpEarned });
-    } catch (err) {
-      console.error("[submissions] add_xp_to_profile RPC error:", err);
+    if (!isFirstSolve) {
+      // Challenge already solved — no XP awarded; return early from profile update
+      return NextResponse.json({
+        id:           submissionId,
+        status:       exec.status,
+        output:       exec.output,
+        runtime:      exec.runtimeMs,
+        memory:       null,
+        xp_earned:    0,
+        passed:       exec.passedCount,
+        total:        exec.totalCount,
+      });
     }
 
+    // ── Read profile for rank + streak computation ──
     try {
       const { data: prof } = await supabase
         .from("profiles")
-        .select("streak_days,last_streak_date,challenges_solved,solved_seed_ids")
+        .select("total_xp,rank,streak_days,last_streak_date,challenges_solved,solved_seed_ids")
         .eq("id", user.id)
         .single();
 
       const todayUTC  = new Date().toISOString().slice(0, 10);
       const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
       const lastDate  = prof?.last_streak_date ?? null;
+      const lastXP    = Number(prof?.total_xp ?? 0);
+      const newXP     = lastXP + xpEarned;
 
       const newStreak =
         !lastDate || lastDate < yesterday ? 1 :
         lastDate === yesterday            ? (prof?.streak_days ?? 0) + 1 :
                                             prof?.streak_days ?? 1;
 
+      // ── Leaderboard recalculation: always recompute rank from new XP ──
+      const newRank = getRankFromXP(newXP);
+
       interface ProfileUpdate {
+        total_xp:         number;
+        rank:             string;
         streak_days:      number;
         last_streak_date: string;
         last_active_at:   string;
@@ -380,21 +280,26 @@ export async function POST(request: Request) {
       }
 
       const update: ProfileUpdate = {
+        total_xp:         newXP,
+        rank:             newRank,
         streak_days:      newStreak,
         last_streak_date: todayUTC,
         last_active_at:   new Date().toISOString(),
+        challenges_solved: (prof?.challenges_solved ?? 0) + 1,
       };
 
-      if (isFirstSolve) {
-        update.challenges_solved = (prof?.challenges_solved ?? 0) + 1;
-        if (isSeed) {
-          update.solved_seed_ids = [...(prof?.solved_seed_ids ?? []), challenge_id];
-        }
+      if (isSeed) {
+        update.solved_seed_ids = [...(prof?.solved_seed_ids ?? []), challenge_id];
       }
 
-      await supabase.from("profiles").update(update).eq("id", user.id);
+      const { error: updErr } = await supabase
+        .from("profiles")
+        .update(update)
+        .eq("id", user.id);
+
+      if (updErr) console.error("[submissions] Profile update error:", updErr);
     } catch (err) {
-      console.error("[submissions] Profile update error:", err);
+      console.error("[submissions] Profile block error:", err);
     }
   }
 
@@ -403,7 +308,9 @@ export async function POST(request: Request) {
     status:    exec.status,
     output:    exec.output,
     runtime:   exec.runtimeMs,
-    memory:    parseFloat(exec.memoryMb.toFixed(1)),
+    memory:    null,
     xp_earned: xpEarned,
+    passed:    exec.passedCount,
+    total:     exec.totalCount,
   });
 }

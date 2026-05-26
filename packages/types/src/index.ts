@@ -339,20 +339,19 @@ export function getNextRankXP(xp: number): { next: GalaxyRank | null; needed: nu
 
 // ─── Code Languages ───────────────────────────────────────────────────────────
 
+// Languages supported by the Piston execution engine.
+// ID values must match keys in PISTON_LANGS in apps/web/lib/piston.ts.
 export const SUPPORTED_LANGUAGES = [
-  { id: "python",     label: "Python",     judge0_id: 71, icon: "🐍" },
-  { id: "javascript", label: "JavaScript", judge0_id: 63, icon: "⚡" },
-  { id: "typescript", label: "TypeScript", judge0_id: 74, icon: "🔷" },
-  { id: "java",       label: "Java",       judge0_id: 62, icon: "☕" },
-  { id: "cpp",        label: "C++",        judge0_id: 54, icon: "⚙️" },
-  { id: "c",          label: "C",          judge0_id: 50, icon: "🔧" },
-  { id: "go",         label: "Go",         judge0_id: 60, icon: "🔵" },
-  { id: "rust",       label: "Rust",       judge0_id: 73, icon: "🦀" },
-  { id: "csharp",     label: "C#",         judge0_id: 51, icon: "💜" },
-  { id: "kotlin",     label: "Kotlin",     judge0_id: 78, icon: "🟣" },
-  { id: "php",        label: "PHP",        judge0_id: 68, icon: "🐘" },
-  { id: "ruby",       label: "Ruby",       judge0_id: 72, icon: "💎" },
-  { id: "swift",      label: "Swift",      judge0_id: 83, icon: "🍎" },
+  { id: "python",     label: "Python",     icon: "🐍" },
+  { id: "javascript", label: "JavaScript", icon: "⚡" },
+  { id: "typescript", label: "TypeScript", icon: "🔷" },
+  { id: "java",       label: "Java",       icon: "☕" },
+  { id: "cpp",        label: "C++",        icon: "⚙️" },
+  { id: "c",          label: "C",          icon: "🔧" },
+  { id: "go",         label: "Go",         icon: "🔵" },
+  { id: "rust",       label: "Rust",       icon: "🦀" },
+  { id: "csharp",     label: "C#",         icon: "💜" },
+  { id: "kotlin",     label: "Kotlin",     icon: "🟣" },
 ] as const;
 
 export type SupportedLanguageId = (typeof SUPPORTED_LANGUAGES)[number]["id"];

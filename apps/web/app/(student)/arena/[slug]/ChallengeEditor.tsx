@@ -47,8 +47,8 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
   });
   const [running, setRunning] = useState(false);
   const [result,  setResult]  = useState<{
-    status: string; output?: string; runtime?: number; memory?: number;
-    xp_earned?: number; is_first_solve?: boolean;
+    status: string; output?: string; runtime?: number; memory?: number | null;
+    xp_earned?: number; passed?: number; total?: number;
   } | null>(null);
   const [tab,     setTab]     = useState<"problem" | "submissions">("problem");
   const [monacoTheme, setMonacoTheme] = useState("vs");
@@ -136,12 +136,18 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
           addXP(xp);
           toast.success(`✅ Accepted! +${xp} XP`);
         } else {
-          toast.success("✅ Accepted! (XP already earned for this challenge)");
+          toast.success("✅ Accepted! (Already solved — no XP)");
         }
-        // Clear draft on successful solve
         try { localStorage.removeItem(getDraftKey(challenge.id, lang)); } catch {}
       } else {
-        toast.error(`❌ ${String(data.status ?? "Error").replace(/_/g, " ")}`);
+        const labels: Record<string, string> = {
+          wrong_answer:  "Wrong Answer",
+          compile_error: "Compile Error",
+          runtime_error: "Runtime Error",
+          time_limit:    "Time Limit Exceeded",
+        };
+        const label = labels[data.status as string] ?? String(data.status ?? "Error").replace(/_/g, " ");
+        toast.error(`❌ ${label}`);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Submission failed. Try again.");
@@ -282,7 +288,6 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
                 lang === "cpp"    ? "cpp"    :
                 lang === "csharp" ? "csharp" :
                 lang === "kotlin" ? "kotlin" :
-                lang === "swift"  ? "swift"  :
                 lang
               }
               value={code}
@@ -310,11 +315,18 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
             }`}>
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <StatusBadge status={result.status} />
-                {result.runtime != null && (
-                  <span className="text-xs text-[var(--text-3)]">⏱ {result.runtime} ms</span>
+                {/* Test case pass count */}
+                {result.total != null && result.total > 0 && (
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                    accepted
+                      ? "text-emerald-600 bg-emerald-50 border-emerald-200"
+                      : "text-red-500 bg-red-50 border-red-200"
+                  }`}>
+                    {result.passed ?? 0}/{result.total} tests
+                  </span>
                 )}
-                {result.memory != null && (
-                  <span className="text-xs text-[var(--text-3)]">💾 {Number(result.memory).toFixed(1)} MB</span>
+                {result.runtime != null && result.runtime > 0 && (
+                  <span className="text-xs text-[var(--text-3)]">⏱ {result.runtime} ms</span>
                 )}
                 {Number(result.xp_earned ?? 0) > 0 && (
                   <span className="text-xs font-bold text-brand">+{result.xp_earned} XP earned</span>
@@ -325,13 +337,13 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
               </div>
 
               {result.output && (
-                <pre className="text-xs text-[var(--text-2)] bg-[var(--bg-3)] border border-[var(--border)] rounded-lg p-3 overflow-x-auto max-h-24 mb-3">
+                <pre className="text-xs text-[var(--text-2)] bg-[var(--bg-3)] border border-[var(--border)] rounded-lg p-3 overflow-x-auto max-h-32 mb-3 whitespace-pre-wrap break-words">
                   {result.output}
                 </pre>
               )}
 
               {/* Auto-next CTA after accepted */}
-              {accepted && (
+              {accepted ? (
                 <div className="flex items-center gap-3 mt-2">
                   <Link
                     href="/arena"
@@ -347,6 +359,13 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
                     Retry
                   </button>
                 </div>
+              ) : (
+                <button
+                  onClick={() => setResult(null)}
+                  className="mt-1 text-xs text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors underline"
+                >
+                  Dismiss
+                </button>
               )}
             </div>
           )}
