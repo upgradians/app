@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import toast from "react-hot-toast";
 
 interface Participant {
   id: string;
   full_name: string | null;
   username: string | null;
-  email?: string | null;
   phone_number?: string | null;
   role?: string | null;
   qualification?: string | null;
@@ -20,7 +20,19 @@ interface Participant {
   rank?: string | null;
 }
 
+type ParticipantAction = "ban" | "unban" | "reset_xp" | "reset_streak";
+type PendingAction = { userId: string; action: ParticipantAction } | null;
+
 const PAGE_SIZE = 20;
+
+async function callAdminAction(userId: string, action: string): Promise<boolean> {
+  const res = await fetch("/api/admin/participant", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, action }),
+  });
+  return res.ok;
+}
 
 export default function ParticipantsPage() {
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -29,6 +41,8 @@ export default function ParticipantsPage() {
   const [search,       setSearch]       = useState("");
   const [roleFilter,   setRoleFilter]   = useState("");
   const [loading,      setLoading]      = useState(true);
+  const [pending,      setPending]      = useState<PendingAction>(null);
+  const [acting,       setActing]       = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -79,7 +93,52 @@ export default function ParticipantsPage() {
     URL.revokeObjectURL(url);
   }
 
+  const triggerAction = (userId: string, action: ParticipantAction) => {
+    if (pending?.userId === userId && pending?.action === action) {
+      // Second click → execute
+      void executeAction(userId, action);
+    } else {
+      setPending({ userId, action });
+    }
+  };
+
+  const executeAction = async (userId: string, action: string) => {
+    setActing(true);
+    const ok = await callAdminAction(userId, action);
+    setActing(false);
+    setPending(null);
+    if (ok) {
+      const labels: Record<string, string> = {
+        ban: "User banned", unban: "User unbanned",
+        reset_xp: "XP reset to 0", reset_streak: "Streak reset",
+      };
+      toast.success(labels[action] ?? "Done");
+      void fetchData();
+    } else {
+      toast.error("Action failed. Check permissions.");
+    }
+  };
+
   const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  const ActionButton = ({
+    userId, action, label, color,
+  }: { userId: string; action: ParticipantAction; label: string; color: string }) => {
+    const isConfirming = pending?.userId === userId && pending?.action === action;
+    return (
+      <button
+        onClick={() => triggerAction(userId, action)}
+        disabled={acting}
+        className={`px-2 py-1 rounded-lg text-[10px] font-bold border transition-all disabled:opacity-40 ${
+          isConfirming
+            ? "bg-red-500 text-white border-red-500 animate-pulse"
+            : `${color} hover:opacity-80`
+        }`}
+      >
+        {isConfirming ? "Confirm?" : label}
+      </button>
+    );
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -95,6 +154,11 @@ export default function ParticipantsPage() {
           📥 Export CSV
         </button>
       </div>
+
+      {/* Dismiss confirm on outside click */}
+      {pending && (
+        <div className="fixed inset-0 z-10" onClick={() => setPending(null)} />
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
@@ -125,7 +189,7 @@ export default function ParticipantsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--bg-3)]">
-                {["Name", "Phone", "Role", "Qualification", "Nationality", "College/Company", "Address", "Joined", "XP", "Streak", "Rank"].map(h => (
+                {["Name", "Phone", "Role", "Qualification", "Nationality", "College/Company", "Joined", "XP", "Streak", "Rank", "Actions"].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[var(--text-3)] whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -136,7 +200,7 @@ export default function ParticipantsPage() {
               ) : participants.length === 0 ? (
                 <tr><td colSpan={11} className="py-12 text-center text-[var(--text-3)] text-sm">No participants found</td></tr>
               ) : participants.map(p => (
-                <tr key={p.id} className="hover:bg-[var(--bg-3)] transition-colors">
+                <tr key={p.id} className="hover:bg-[var(--bg-3)] transition-colors relative">
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="font-semibold text-[var(--text-1)]">{p.full_name ?? "—"}</div>
                     <div className="text-xs text-[var(--text-3)]">@{p.username ?? "—"}</div>
@@ -144,7 +208,7 @@ export default function ParticipantsPage() {
                   <td className="px-4 py-3 text-[var(--text-2)] whitespace-nowrap">{p.phone_number ?? "—"}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
-                      p.role === "admin" ? "text-red-400 bg-red-400/10 border-red-400/20" :
+                      p.role === "admin"     ? "text-red-400 bg-red-400/10 border-red-400/20" :
                       p.role === "recruiter" ? "text-amber-400 bg-amber-400/10 border-amber-400/20" :
                       "text-brand bg-brand/10 border-brand/20"
                     }`}>{p.role ?? "student"}</span>
@@ -152,13 +216,19 @@ export default function ParticipantsPage() {
                   <td className="px-4 py-3 text-[var(--text-2)] max-w-[120px] truncate">{p.qualification ?? "—"}</td>
                   <td className="px-4 py-3 text-[var(--text-2)] whitespace-nowrap">{p.nationality ?? "—"}</td>
                   <td className="px-4 py-3 text-[var(--text-2)] max-w-[120px] truncate">{p.college ?? "—"}</td>
-                  <td className="px-4 py-3 text-[var(--text-2)] max-w-[120px] truncate">{p.address ?? "—"}</td>
                   <td className="px-4 py-3 text-[var(--text-3)] whitespace-nowrap text-xs">
                     {p.created_at ? new Date(p.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
                   </td>
                   <td className="px-4 py-3 font-bold text-brand whitespace-nowrap">{Number(p.total_xp ?? 0).toLocaleString()}</td>
                   <td className="px-4 py-3 text-[var(--text-2)] whitespace-nowrap">🔥 {Number(p.streak_days ?? 0)}</td>
                   <td className="px-4 py-3 text-[var(--text-3)] text-xs whitespace-nowrap">{p.rank ?? "Bronze Coder"}</td>
+                  <td className="px-4 py-3 whitespace-nowrap z-20 relative">
+                    <div className="flex items-center gap-1">
+                      <ActionButton userId={p.id} action="reset_xp"     label="0 XP"   color="text-amber-500 border-amber-500/30 bg-amber-500/5" />
+                      <ActionButton userId={p.id} action="reset_streak" label="🔥 0"   color="text-orange-500 border-orange-500/30 bg-orange-500/5" />
+                      <ActionButton userId={p.id} action="ban"          label="Ban"    color="text-red-500 border-red-500/30 bg-red-500/5" />
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

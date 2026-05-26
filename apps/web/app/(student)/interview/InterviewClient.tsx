@@ -35,7 +35,8 @@ interface SessionState {
   answers: Record<string, string>;
 }
 
-const SESSION_DURATION_SEC = 30 * 60; // 30 minutes
+const SESSION_DURATION_SEC  = 30 * 60; // 30 minutes total
+const QUESTION_DURATION_SEC = 5  * 60; // 5 minutes per question
 
 function useTimer(active: boolean) {
   const [seconds, setSeconds] = useState(SESSION_DURATION_SEC);
@@ -47,6 +48,23 @@ function useTimer(active: boolean) {
   const m = Math.floor(seconds / 60).toString().padStart(2, "0");
   const s = (seconds % 60).toString().padStart(2, "0");
   return { display: `${m}:${s}`, expired: seconds === 0 };
+}
+
+function useQuestionTimer(active: boolean, questionIndex: number) {
+  const [seconds, setSeconds] = useState(QUESTION_DURATION_SEC);
+  useEffect(() => { setSeconds(QUESTION_DURATION_SEC); }, [questionIndex]);
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => setSeconds(s => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [active, questionIndex]);
+  const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+  const s = (seconds % 60).toString().padStart(2, "0");
+  return { display: `${m}:${s}`, expired: seconds === 0, seconds };
+}
+
+function draftKey(sessionId: string, questionId: string) {
+  return `interview:draft:${sessionId}:${questionId}`;
 }
 
 export function InterviewClient() {
@@ -61,9 +79,10 @@ export function InterviewClient() {
   const videoRef  = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const timer = useTimer(stage === "session");
+  const timer         = useTimer(stage === "session");
+  const questionTimer = useQuestionTimer(stage === "session", session?.currentIndex ?? 0);
 
-  // Auto-submit when timer expires
+  // Auto-submit entire session when session timer expires
   useEffect(() => {
     if (timer.expired && stage === "session" && session) {
       toast.error("Time's up! Submitting your answers.");
@@ -71,6 +90,25 @@ export function InterviewClient() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timer.expired, stage]);
+
+  // Auto-advance when per-question timer expires
+  useEffect(() => {
+    if (!questionTimer.expired || stage !== "session" || !session) return;
+    const q = session.questions[session.currentIndex];
+    const saved = answer.trim() || (typeof window !== "undefined"
+      ? (localStorage.getItem(draftKey(session.sessionId, q.id)) ?? "")
+      : "");
+    const newAnswers = { ...session.answers, [q.id]: saved || "(no answer)" };
+    const isLast = session.currentIndex === session.questions.length - 1;
+    toast(`⏱ Time up for Q${session.currentIndex + 1}. ${isLast ? "Submitting…" : "Moving to next question."}`, { icon: "⏱" });
+    if (isLast) {
+      void handleFinish(newAnswers);
+    } else {
+      setSession({ ...session, currentIndex: session.currentIndex + 1, answers: newAnswers });
+      setAnswer("");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questionTimer.expired]);
 
   const requestWebcam = useCallback(async () => {
     try {
@@ -132,6 +170,26 @@ export function InterviewClient() {
     }
   }, [session, role, level, stopWebcam]);
 
+  // Restore draft when question index changes
+  useEffect(() => {
+    if (!session) return;
+    const q = session.questions[session.currentIndex];
+    if (!q) return;
+    const saved = typeof window !== "undefined"
+      ? (localStorage.getItem(draftKey(session.sessionId, q.id)) ?? "")
+      : "";
+    setAnswer(saved);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.currentIndex, session?.sessionId]);
+
+  // Autosave answer draft
+  useEffect(() => {
+    if (!session || typeof window === "undefined") return;
+    const q = session.questions[session.currentIndex];
+    if (!q) return;
+    localStorage.setItem(draftKey(session.sessionId, q.id), answer);
+  }, [answer, session]);
+
   const submitAnswer = useCallback(async () => {
     if (!session || !answer.trim()) return;
     const q = session.questions[session.currentIndex];
@@ -139,6 +197,10 @@ export function InterviewClient() {
     const isLast = session.currentIndex === session.questions.length - 1;
 
     if (isLast) {
+      // Clear all drafts for this session
+      session.questions.forEach(qItem => {
+        try { localStorage.removeItem(draftKey(session.sessionId, qItem.id)); } catch {}
+      });
       await handleFinish(newAnswers);
     } else {
       setSession({ ...session, currentIndex: session.currentIndex + 1, answers: newAnswers });
@@ -262,10 +324,23 @@ export function InterviewClient() {
                     }`} />
                   ))}
                 </div>
-                <div className={`ml-4 font-mono text-sm font-bold px-3 py-1 rounded-lg flex-shrink-0 ${
-                  timer.display < "05:00" ? "text-red-400 bg-red-400/10 border border-red-400/20" : "text-[var(--text-2)] bg-[var(--bg-3)]"
-                }`}>
-                  ⏱ {timer.display}
+                <div className="ml-4 flex items-center gap-2 flex-shrink-0">
+                  {/* Per-question countdown */}
+                  <div className={`font-mono text-xs font-bold px-2.5 py-1 rounded-lg border ${
+                    questionTimer.seconds < 60
+                      ? "text-red-400 bg-red-400/10 border-red-400/20 animate-pulse"
+                      : questionTimer.seconds < 120
+                      ? "text-amber-400 bg-amber-400/10 border-amber-400/20"
+                      : "text-[var(--text-3)] bg-[var(--bg-3)] border-transparent"
+                  }`}>
+                    Q {questionTimer.display}
+                  </div>
+                  {/* Session total */}
+                  <div className={`font-mono text-xs font-bold px-2.5 py-1 rounded-lg ${
+                    timer.display < "05:00" ? "text-red-400 bg-red-400/10 border border-red-400/20" : "text-[var(--text-2)] bg-[var(--bg-3)]"
+                  }`}>
+                    ⏱ {timer.display}
+                  </div>
                 </div>
               </div>
 
