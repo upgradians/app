@@ -45,14 +45,15 @@ export function InterviewClient() {
   const startSession = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/interview/start`, {
+      const res = await fetch("/api/interview/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ role, level }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setSession({ sessionId: data.session_id, questions: data.questions, currentIndex: 0, answers: {} });
+      if (!data.questions?.length) throw new Error("No questions returned");
+      setSession({ sessionId: data.session_id ?? "demo", questions: data.questions, currentIndex: 0, answers: {} });
       setStage("session");
     } catch {
       toast.error("Failed to start session. Try again.");
@@ -70,11 +71,10 @@ export function InterviewClient() {
     if (isLast) {
       setLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/interview/${session.sessionId}/complete`, {
+        const res = await fetch(`/api/interview/${session.sessionId}/complete`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ answers: newAnswers }),
+          body: JSON.stringify({ answers: newAnswers, role: session.questions[0]?.type ?? "fullstack", level: "mid" }),
         });
         const data = await res.json();
         setResults(data);

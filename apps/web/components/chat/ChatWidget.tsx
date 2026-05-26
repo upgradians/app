@@ -79,9 +79,13 @@ export function ChatWidget() {
       });
 
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "model", text: data.text ?? "Sorry, I couldn't respond. Please try again." }]);
+      const replyText = data.text ?? (data.error ? null : null);
+      setMessages(prev => [...prev, {
+        role: "model",
+        text: replyText ?? "I'm having a moment — please email us at career@upgradians.com or try again shortly.",
+      }]);
     } catch {
-      setMessages(prev => [...prev, { role: "model", text: "Something went wrong. Please try again or email us at career@upgradians.com." }]);
+      setMessages(prev => [...prev, { role: "model", text: "Network error. Please check your connection or email career@upgradians.com." }]);
     } finally {
       setLoading(false);
     }

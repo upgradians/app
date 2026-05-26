@@ -55,7 +55,7 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
           Welcome back, {profile?.full_name?.split(" ")[0] ?? profile?.username} 👋
         </h1>
         <p className="text-[var(--text-2)] mt-1 text-sm">
-          Keep pushing — you&apos;re {needed.toLocaleString()} XP away from {next ?? "the top"}.
+          Keep pushing — you&apos;re {(needed ?? 0).toLocaleString()} XP away from {next ?? "the top"}.
         </p>
       </motion.div>
 
@@ -74,14 +74,14 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="text-3xl font-extrabold text-[var(--text-1)] tracking-tight">
-                {xp.toLocaleString()} <span className="text-brand text-xl">XP</span>
+                {(xp ?? 0).toLocaleString()} <span className="text-brand text-xl">XP</span>
               </div>
               <RankBadge rank={rank} className="mt-1.5" />
             </div>
             {next && (
               <div className="text-right">
                 <div className="text-xs text-[var(--text-3)] mb-1">Next: {next}</div>
-                <div className="text-sm font-bold text-[var(--text-2)]">{needed.toLocaleString()} XP needed</div>
+                <div className="text-sm font-bold text-[var(--text-2)]">{(needed ?? 0).toLocaleString()} XP needed</div>
               </div>
             )}
           </div>
@@ -204,7 +204,7 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
                       </div>
                       <RankBadge rank={p.rank as Profile["rank"]} showEmoji={false} className="text-[10px] mt-0.5" />
                     </div>
-                    <div className="text-sm font-extrabold text-brand">{p.xp.toLocaleString()} XP</div>
+                    <div className="text-sm font-extrabold text-brand">{(p.xp ?? 0).toLocaleString()} XP</div>
                   </div>
                 ))}
               </div>

@@ -4,7 +4,6 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import { Providers } from "./providers";
 import { ChatWidget } from "@/components/chat/ChatWidget";
-import { WhatsAppButton } from "@/components/marketing/WhatsAppButton";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -49,7 +48,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <Providers>
           {children}
-          <WhatsAppButton />
           <ChatWidget />
           <Toaster
             position="bottom-right"

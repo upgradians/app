@@ -42,11 +42,41 @@ interface Message {
   parts: Array<{ text: string }>;
 }
 
-export async function POST(req: NextRequest) {
-  if (!GEMINI_API_KEY) {
-    return NextResponse.json({ error: "AI service not configured" }, { status: 503 });
+function getFallbackResponse(message: string): string {
+  const lower = message.toLowerCase();
+
+  if (lower.includes("intern") || lower.includes("job") || lower.includes("career") || lower.includes("hire")) {
+    return "We offer internships in Full Stack Engineering, AI/ML Engineering, Data Engineering, Frontend, DevOps, and UI/UX Design. Duration is 2–3 months. Apply by emailing **career@upgradians.com** with your resume and areas of interest. We review applications on a rolling basis!";
+  }
+  if (lower.includes("service") || lower.includes("build") || lower.includes("develop") || lower.includes("project")) {
+    return "Upgradian Technology builds **SaaS platforms, web & mobile apps, AI products, ERP/CRM systems, Cloud & DevOps solutions, API integrations, and startup MVPs**. To discuss your project, email us at career@upgradians.com.";
+  }
+  if (lower.includes("arena") || lower.includes("challenge") || lower.includes("coding") || lower.includes("practice")) {
+    return "Our **Coding Arena** has 500+ DSA challenges across Easy, Medium, and Hard difficulties. Solve challenges to earn XP, climb the leaderboard, and unlock achievements. Head to /arena to start practicing!";
+  }
+  if (lower.includes("interview") || lower.includes("mock")) {
+    return "Our **AI Mock Interview** feature generates real interview questions tailored to your role (Frontend, Backend, Full Stack, DSA, ML, DevOps) and experience level (Junior, Mid, Senior). You get AI-scored feedback after each session. Try it at /interview!";
+  }
+  if (lower.includes("contact") || lower.includes("reach") || lower.includes("email") || lower.includes("whatsapp")) {
+    return "You can reach Upgradian Technology at:\n- **Email:** career@upgradians.com\n- **WhatsApp:** +91 85534 51935\n- **Office:** TIDEL Neo, Villupuram, Tamil Nadu, India";
+  }
+  if (lower.includes("contest") || lower.includes("competition")) {
+    return "We run **Live Coding Contests** with prize pools and XP bonuses! Winners can earn internship opportunities at Upgradian. Check out upcoming contests at /contests.";
+  }
+  if (lower.includes("leaderboard") || lower.includes("rank") || lower.includes("xp")) {
+    return "Our **Global Leaderboard** ranks developers by XP earned through solving challenges, winning contests, and completing missions. Your rank progression: Bronze Coder → Silver Developer → Gold Engineer → Cosmic Master. View it at /leaderboard.";
+  }
+  if (lower.includes("track") || lower.includes("skill") || lower.includes("learn")) {
+    return "We offer **Skill Tracks** in DSA, System Design, Full Stack Development, and AI/ML — each with curated challenges and a structured learning path. Start your track at /tracks.";
+  }
+  if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey") || lower.includes("help")) {
+    return "Hi! I'm Aria, Upgradian's AI assistant. I can help you with:\n- 🎓 **Internship opportunities**\n- 💼 **Our development services**\n- ⚔️ **Coding Arena challenges**\n- 🤖 **AI Mock Interviews**\n- 📊 **Leaderboard & XP system**\n\nWhat would you like to know?";
   }
 
+  return "I'm here to help with Upgradian's services, internships, coding platform, and more. For specific enquiries, email us at **career@upgradians.com**. What can I assist you with?";
+}
+
+export async function POST(req: NextRequest) {
   let history: Message[] = [];
   let userMessage = "";
 
@@ -60,6 +90,10 @@ export async function POST(req: NextRequest) {
 
   if (!userMessage.trim()) {
     return NextResponse.json({ error: "Empty message" }, { status: 400 });
+  }
+
+  if (!GEMINI_API_KEY) {
+    return NextResponse.json({ text: getFallbackResponse(userMessage) });
   }
 
   const contents: Message[] = [
@@ -82,23 +116,25 @@ export async function POST(req: NextRequest) {
             topP: 0.9,
           },
         }),
+        signal: AbortSignal.timeout(15000),
       }
     );
 
     if (!res.ok) {
-      const err = await res.text();
-      console.error("Gemini API error:", err);
-      return NextResponse.json({ error: "AI service error" }, { status: 502 });
+      console.error("Gemini API error:", res.status, await res.text().catch(() => ""));
+      return NextResponse.json({ text: getFallbackResponse(userMessage) });
     }
 
     const data = await res.json();
-    const text: string =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ??
-      "I'm having trouble responding right now. Please try again or contact us at career@upgradians.com.";
+    const text: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      return NextResponse.json({ text: getFallbackResponse(userMessage) });
+    }
 
     return NextResponse.json({ text });
   } catch (err) {
     console.error("Chat route error:", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return NextResponse.json({ text: getFallbackResponse(userMessage) });
   }
 }
