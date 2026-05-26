@@ -3,8 +3,9 @@
 export type UserRole = "student" | "recruiter" | "admin";
 export type Difficulty = "easy" | "medium" | "hard";
 export type SubmissionStatus =
-  | "pending" | "running" | "accepted"
-  | "wrong_answer" | "time_limit" | "runtime_error" | "compile_error";
+  | "pending" | "accepted"
+  | "wrong_answer" | "timeout" | "time_limit"   // time_limit kept for legacy records
+  | "runtime_error" | "compile_error";
 export type ContestStatus = "upcoming" | "live" | "ended";
 export type MissionStatus = "pending" | "in_review" | "approved" | "rejected";
 export type GalaxyRank =

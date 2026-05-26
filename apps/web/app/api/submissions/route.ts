@@ -1,96 +1,15 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { SEED_CHALLENGES } from "@/lib/challenges-seed";
-import { pistonRun, PISTON_LANGS, type ExecStatus } from "@/lib/piston";
+import { PISTON_LANGS } from "@/lib/piston";
 import { preValidateCode } from "@/lib/execution/validate";
+import { runSubmissionPipeline } from "@/lib/execution/pipeline";
+import type { TestCase } from "@/lib/execution/types";
 import { getRankFromXP } from "@upgradian/types";
 
 export const maxDuration = 60;
 
-// ─── Submission cooldown (anti-spam) ─────────────────────────────────────────
-const COOLDOWN_MS = 5_000; // 5 seconds between graded submissions
-
-interface TestCaseItem {
-  input:           string;
-  expected_output: string;
-  is_hidden?:      boolean;
-}
-
-interface RunAllResult {
-  status:    ExecStatus;
-  output:    string; // safe to show user (no hidden test case leakage)
-  runtimeMs: number;
-  passedCount: number;
-  totalCount:  number;
-}
-
-// ─── Run every test case through Piston ──────────────────────────────────────
-async function runTestCases(
-  code:      string,
-  language:  string,
-  testCases: TestCaseItem[],
-): Promise<RunAllResult> {
-  let totalRuntime = 0;
-  let passedCount  = 0;
-
-  for (let i = 0; i < testCases.length; i++) {
-    const tc = testCases[i];
-    let r;
-
-    try {
-      r = await pistonRun(code, language, tc.input ?? "");
-    } catch (err) {
-      // Piston service unavailable (network, timeout, HTTP 5xx) — rethrow so POST can save as pending
-      console.error(`[submissions] Piston service error on test ${i + 1}:`, err);
-      throw err;
-    }
-
-    totalRuntime += r.runtimeMs;
-
-    // ── Hard failures — stop immediately ──
-    if (r.status === "compile_error") {
-      // Always show compile output regardless of hidden status
-      return { status: "compile_error", output: r.stderr || "Compilation failed.",
-        runtimeMs: 0, passedCount, totalCount: testCases.length };
-    }
-
-    if (r.status === "time_limit") {
-      const out = tc.is_hidden ? `Time limit exceeded on hidden test case ${i + 1}.` : r.stderr;
-      return { status: "time_limit", output: out,
-        runtimeMs: totalRuntime, passedCount, totalCount: testCases.length };
-    }
-
-    if (r.status === "runtime_error") {
-      const out = tc.is_hidden
-        ? `Runtime error on hidden test case ${i + 1}.`
-        : (r.stderr || `Runtime error on test ${i + 1}.`);
-      return { status: "runtime_error", output: out,
-        runtimeMs: totalRuntime, passedCount, totalCount: testCases.length };
-    }
-
-    // ── Output comparison (status === "accepted" from Piston) ──
-    const expected = (tc.expected_output ?? "").trim();
-    const actual   = r.stdout.trim();
-
-    if (expected && actual !== expected) {
-      const out = tc.is_hidden
-        ? `Wrong answer on hidden test case ${i + 1}.`
-        : `Wrong answer on test ${i + 1}.\n\nExpected:\n${expected}\n\nGot:\n${actual}`;
-      return { status: "wrong_answer", output: out,
-        runtimeMs: totalRuntime, passedCount, totalCount: testCases.length };
-    }
-
-    passedCount++;
-  }
-
-  return {
-    status:      "accepted",
-    output:      "",
-    runtimeMs:   Math.round(totalRuntime / Math.max(testCases.length, 1)),
-    passedCount: testCases.length,
-    totalCount:  testCases.length,
-  };
-}
+const COOLDOWN_MS = 5_000;
 
 // ─── POST /api/submissions ────────────────────────────────────────────────────
 export async function POST(request: Request) {
@@ -98,14 +17,14 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // ── Parse body ──
+  // ── Parse body ────────────────────────────────────────────────────────────
   let body: { challenge_id?: string; code?: string; language?: string };
   try { body = await request.json(); }
   catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
   const { challenge_id, code, language } = body;
 
-  // ── Input validation ──
+  // ── Input validation ──────────────────────────────────────────────────────
   if (!challenge_id) {
     return NextResponse.json({ error: "challenge_id is required." }, { status: 400 });
   }
@@ -121,15 +40,15 @@ export async function POST(request: Request) {
     }, { status: 400 });
   }
 
-  // ── Code pre-validation (reject placeholder/unchanged starter) ──
-  const isSeed       = challenge_id.startsWith("seed-");
-  const seedForPreV  = isSeed ? SEED_CHALLENGES.find(c => c.id === challenge_id) : null;
-  const preErr       = preValidateCode(code, language, seedForPreV?.starter_code ?? null);
+  // ── Deterministic pre-validation (7-stage) ────────────────────────────────
+  const isSeed      = challenge_id.startsWith("seed-");
+  const seedForPreV = isSeed ? SEED_CHALLENGES.find(c => c.id === challenge_id) : null;
+  const preErr      = preValidateCode(code, language, seedForPreV?.starter_code ?? null);
   if (preErr) {
     return NextResponse.json({ error: preErr }, { status: 422 });
   }
 
-  // ── Anti-spam cooldown (DB challenges only) ──
+  // ── Anti-spam cooldown (DB challenges only) ───────────────────────────────
   if (!isSeed) {
     const { data: recent } = await supabase
       .from("submissions")
@@ -151,15 +70,15 @@ export async function POST(request: Request) {
     }
   }
 
-  // ── Load challenge + ALL test cases (hidden included) ──
+  // ── Load challenge + ALL test cases (hidden included — never sent to client) ──
   const seed = isSeed ? SEED_CHALLENGES.find(c => c.id === challenge_id) : null;
   let challengeDbId: string | null = null;
   let xpReward = 50;
-  let testCases: TestCaseItem[] = [];
+  let testCases: TestCase[] = [];
 
   if (isSeed && seed) {
     xpReward  = seed.xp_reward ?? 50;
-    testCases = (seed.test_cases ?? []) as TestCaseItem[];
+    testCases = (seed.test_cases ?? []) as TestCase[];
   } else if (!isSeed) {
     const { data: ch, error: chErr } = await supabase
       .from("challenges")
@@ -180,7 +99,7 @@ export async function POST(request: Request) {
       .eq("challenge_id", ch.id)
       .order("order_index");
 
-    testCases = (tcs ?? []) as TestCaseItem[];
+    testCases = (tcs ?? []) as TestCase[];
   } else {
     return NextResponse.json({ error: "Challenge not found." }, { status: 404 });
   }
@@ -189,37 +108,40 @@ export async function POST(request: Request) {
     testCases = [{ input: "", expected_output: "", is_hidden: false }];
   }
 
-  // ── Execute all test cases via Piston ──
-  let exec: RunAllResult;
+  // ── Execute all test cases via provider pipeline ───────────────────────────
+  let exec;
   try {
-    exec = await runTestCases(code, language, testCases);
+    exec = await runSubmissionPipeline(code, language, testCases);
   } catch (err) {
-    console.error("[submissions] Piston unavailable:", err);
-    // Execution engine is down — save as pending, never auto-accept
-    let submissionIdOnFailure: string | undefined;
+    console.error("[submissions] Execution provider unavailable:", err);
+    let pendingId: string | undefined;
     if (!isSeed && challengeDbId) {
       const { data: saved } = await supabase
         .from("submissions")
-        .insert({ user_id: user.id, challenge_id: challengeDbId, code, language, status: "pending", runtime_ms: null, memory_mb: null, xp_earned: 0 })
+        .insert({
+          user_id: user.id, challenge_id: challengeDbId,
+          code, language, status: "pending",
+          runtime_ms: null, memory_mb: null, xp_earned: 0,
+        })
         .select("id").single();
-      submissionIdOnFailure = saved?.id;
+      pendingId = saved?.id;
     }
     return NextResponse.json({
-      id:        submissionIdOnFailure,
+      id:        pendingId,
       status:    "pending",
-      output:    "The execution service is temporarily unavailable. Your submission has been saved and will be evaluated shortly. Please try again in a few minutes.",
+      output:    "The execution service is temporarily unavailable. Your submission has been saved. Please try again in a few minutes.",
       runtime:   null,
       memory:    null,
       xp_earned: 0,
       passed:    0,
       total:     testCases.length,
-    }, { status: 200 });
+    });
   }
 
-  // XP only for a clean accepted run
+  // ── XP: only for clean accepted run ──────────────────────────────────────
   const xpEarned = exec.status === "accepted" ? xpReward : 0;
 
-  // ── Persist submission (DB challenges only) ──
+  // ── Persist submission (DB challenges only) ───────────────────────────────
   let submissionId: string | undefined;
   if (!isSeed && challengeDbId) {
     const { data: saved, error: saveErr } = await supabase
@@ -231,7 +153,7 @@ export async function POST(request: Request) {
         language,
         status:       exec.status,
         runtime_ms:   exec.runtimeMs,
-        memory_mb:    null, // Piston does not expose memory usage
+        memory_mb:    null,
         xp_earned:    xpEarned,
       })
       .select("id")
@@ -241,11 +163,11 @@ export async function POST(request: Request) {
     submissionId = saved?.id;
   }
 
-  // ── Profile updates on accepted + XP earned ──
+  // ── Profile updates: accepted + XP earned ─────────────────────────────────
   if (exec.status === "accepted" && xpEarned > 0) {
-    // ── First-solve gate (prevents XP farming) ──
-    let isFirstSolve = false;
 
+    // First-solve gate — prevents duplicate XP farming
+    let isFirstSolve = false;
     if (isSeed) {
       const { data: p } = await supabase
         .from("profiles")
@@ -254,7 +176,6 @@ export async function POST(request: Request) {
         .single();
       isFirstSolve = !(p?.solved_seed_ids ?? []).includes(challenge_id);
     } else if (challengeDbId) {
-      // Count accepted submissions for this challenge; we just inserted one so threshold is 1
       const { count } = await supabase
         .from("submissions")
         .select("id", { count: "exact", head: true })
@@ -265,20 +186,14 @@ export async function POST(request: Request) {
     }
 
     if (!isFirstSolve) {
-      // Challenge already solved — no XP awarded; return early from profile update
       return NextResponse.json({
-        id:           submissionId,
-        status:       exec.status,
-        output:       exec.output,
-        runtime:      exec.runtimeMs,
-        memory:       null,
-        xp_earned:    0,
-        passed:       exec.passedCount,
-        total:        exec.totalCount,
+        id: submissionId, status: exec.status,
+        output: exec.output, runtime: exec.runtimeMs, memory: null,
+        xp_earned: 0, passed: exec.passedCount, total: exec.totalCount,
       });
     }
 
-    // ── Read profile for rank + streak computation ──
+    // Update profile: XP, rank, streak, challenges_solved
     try {
       const { data: prof } = await supabase
         .from("profiles")
@@ -297,25 +212,24 @@ export async function POST(request: Request) {
         lastDate === yesterday            ? (prof?.streak_days ?? 0) + 1 :
                                             prof?.streak_days ?? 1;
 
-      // ── Leaderboard recalculation: always recompute rank from new XP ──
       const newRank = getRankFromXP(newXP);
 
       interface ProfileUpdate {
-        total_xp:         number;
-        rank:             string;
-        streak_days:      number;
-        last_streak_date: string;
-        last_active_at:   string;
+        total_xp:          number;
+        rank:              string;
+        streak_days:       number;
+        last_streak_date:  string;
+        last_active_at:    string;
         challenges_solved?: number;
         solved_seed_ids?:   string[];
       }
 
       const update: ProfileUpdate = {
-        total_xp:         newXP,
-        rank:             newRank,
-        streak_days:      newStreak,
-        last_streak_date: todayUTC,
-        last_active_at:   new Date().toISOString(),
+        total_xp:          newXP,
+        rank:              newRank,
+        streak_days:       newStreak,
+        last_streak_date:  todayUTC,
+        last_active_at:    new Date().toISOString(),
         challenges_solved: (prof?.challenges_solved ?? 0) + 1,
       };
 

@@ -43,7 +43,8 @@ export function RankBadge({ rank, showEmoji = true, className }: { rank: GalaxyR
 const statusConfig: Record<string, string> = {
   accepted:      "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
   wrong_answer:  "bg-red-500/15     text-red-400     border-red-500/30",
-  time_limit:    "bg-yellow-500/15  text-yellow-400  border-yellow-500/30",
+  timeout:       "bg-yellow-500/15  text-yellow-400  border-yellow-500/30",
+  time_limit:    "bg-yellow-500/15  text-yellow-400  border-yellow-500/30", // legacy
   runtime_error: "bg-orange-500/15  text-orange-400  border-orange-500/30",
   compile_error: "bg-pink-500/15    text-pink-400    border-pink-500/30",
   pending:       "bg-slate-500/15   text-slate-400   border-slate-500/30",

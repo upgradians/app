@@ -160,7 +160,8 @@ export function ChallengeEditor({ challenge, submissions, contestMode = false }:
           wrong_answer:  "Wrong Answer",
           compile_error: "Compile Error",
           runtime_error: "Runtime Error",
-          time_limit:    "Time Limit Exceeded",
+          timeout:       "Time Limit Exceeded",
+          time_limit:    "Time Limit Exceeded",  // legacy
         };
         const label = labels[data.status as string] ?? String(data.status ?? "Error").replace(/_/g, " ");
         toast.error(`❌ ${label}`);
