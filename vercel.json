@@ -2,7 +2,6 @@
   "buildCommand": "pnpm --filter @upgradian/web build",
   "installCommand": "pnpm install --frozen-lockfile",
   "outputDirectory": "apps/web/.next",
-  "framework": "nextjs",
   "headers": [
     {
       "source": "/(.*)",
