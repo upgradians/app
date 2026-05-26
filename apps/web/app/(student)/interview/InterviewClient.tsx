@@ -79,8 +79,8 @@ export function InterviewClient() {
       if (videoRef.current) videoRef.current.srcObject = stream;
       setWebcamOk(true);
     } catch {
-      toast.error("Camera/microphone access denied. You can still proceed.");
-      setWebcamOk(true); // allow to proceed without webcam
+      toast.error("Camera and microphone are required to start the interview. Please allow access and try again.");
+      setWebcamOk(false); // block interview — permissions required
     }
   }, []);
 
@@ -236,9 +236,14 @@ export function InterviewClient() {
                   Camera access helps ensure interview integrity. Your session is not recorded or stored externally.
                 </p>
               </div>
+              {!webcamOk && (
+                <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 font-semibold">
+                  📷 Camera and microphone access is required. Click &quot;Enable Camera &amp; Microphone&quot; above to continue.
+                </div>
+              )}
               <div className="flex gap-3">
                 <Button variant="secondary" onClick={() => setStage("select")} className="flex-1">← Back</Button>
-                <Button loading={loading} onClick={startSession} className="flex-[2]">
+                <Button loading={loading} onClick={startSession} disabled={!webcamOk} className="flex-[2]">
                   Start Interview →
                 </Button>
               </div>

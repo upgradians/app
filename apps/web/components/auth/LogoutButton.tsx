@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -12,18 +11,22 @@ interface LogoutButtonProps {
 }
 
 export function LogoutButton({ className = "", showIcon = true, label = "Sign Out" }: LogoutButtonProps) {
-  const router   = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
+    if (loading) return;
     setLoading(true);
     try {
       const supabase = createClient();
-      await supabase.auth.signOut();
-      router.push("/");
-      router.refresh();
+      await supabase.auth.signOut({ scope: "local" });
     } catch {
-      setLoading(false);
+      // Ignore signOut errors — proceed with client-side cleanup regardless
+    } finally {
+      // Clear all local state unconditionally
+      try { localStorage.clear(); } catch {}
+      try { sessionStorage.clear(); } catch {}
+      // Hard redirect clears stale router/auth cache completely
+      window.location.replace("/");
     }
   };
 

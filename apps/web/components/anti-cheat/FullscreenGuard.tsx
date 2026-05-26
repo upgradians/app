@@ -17,13 +17,13 @@ export function FullscreenGuard({
   enabled = true,
   sessionType = "coding",
 }: FullscreenGuardProps) {
-  const [warnings,      setWarnings]      = useState(0);
-  const [showWarning,   setShowWarning]   = useState(false);
-  const [disqualified,  setDisqualified]  = useState(false);
-  const [warningMsg,    setWarningMsg]    = useState("");
-  const [countdown,     setCountdown]     = useState(5);
-  const warningRef      = useRef(false);
-  const countdownRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [warnings,     setWarnings]     = useState(0);
+  const [showWarning,  setShowWarning]  = useState(false);
+  const [disqualified, setDisqualified] = useState(false);
+  const [warningMsg,   setWarningMsg]   = useState("");
+  // warningRef prevents firing multiple violations before user dismisses
+  const warningActive = useRef(false);
+  const warningsCount = useRef(0);
 
   const enterFullscreen = useCallback(async () => {
     try {
@@ -36,35 +36,29 @@ export function FullscreenGuard({
   }, []);
 
   const warn = useCallback((reason: string) => {
-    if (!enabled || disqualified || warningRef.current) return;
-    warningRef.current = true;
+    if (!enabled || warningActive.current) return;
 
-    setWarnings(prev => {
-      const next = prev + 1;
-      setWarningMsg(reason);
-      setShowWarning(true);
-      setCountdown(5);
+    warningActive.current = true;
+    warningsCount.current += 1;
+    const next = warningsCount.current;
 
-      if (countdownRef.current) clearInterval(countdownRef.current);
-      countdownRef.current = setInterval(() => {
-        setCountdown(c => {
-          if (c <= 1) {
-            clearInterval(countdownRef.current!);
-            setShowWarning(false);
-            warningRef.current = false;
-            if (next >= maxWarnings) {
-              setDisqualified(true);
-              onDisqualify?.();
-            }
-            return 5;
-          }
-          return c - 1;
-        });
-      }, 1000);
+    setWarnings(next);
+    setWarningMsg(reason);
+    setShowWarning(true);
 
-      return next;
-    });
-  }, [enabled, disqualified, maxWarnings, onDisqualify]);
+    if (next >= maxWarnings) {
+      setDisqualified(true);
+      setShowWarning(false);
+      onDisqualify?.();
+    }
+  }, [enabled, maxWarnings, onDisqualify]);
+
+  const dismissWarning = useCallback(() => {
+    setShowWarning(false);
+    warningActive.current = false;
+    // Re-enter fullscreen after dismiss
+    void enterFullscreen();
+  }, [enterFullscreen]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -73,27 +67,27 @@ export function FullscreenGuard({
 
     function onFullscreenChange() {
       if (!document.fullscreenElement) {
-        warn("You exited fullscreen. Return to continue.");
-        setTimeout(enterFullscreen, 1500);
+        warn("You exited fullscreen. Press Dismiss to continue.");
       }
     }
-
     function onVisibilityChange() {
       if (document.hidden) {
-        warn("Tab switch detected. Stay on the exam tab.");
+        warn("Tab switch detected. Return to the exam tab.");
       }
     }
-
     function onWindowBlur() {
-      if (!document.hidden) {
-        warn("You left the exam window.");
+      // Only fire if the page itself lost focus (not just an element)
+      if (!document.hidden && !document.fullscreenElement) {
+        warn("Window focus lost. Stay on the exam window.");
       }
     }
-
     function onKeyDown(e: KeyboardEvent) {
-      // Block common escape vectors
-      if (e.key === "F12" || (e.ctrlKey && e.shiftKey && e.key === "I") ||
-          (e.ctrlKey && e.key === "u") || (e.key === "F5")) {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && e.key === "I") ||
+        (e.ctrlKey && e.key === "u") ||
+        e.key === "F5"
+      ) {
         e.preventDefault();
       }
     }
@@ -111,20 +105,20 @@ export function FullscreenGuard({
       if (document.fullscreenElement) {
         document.exitFullscreen().catch(() => {});
       }
-      if (countdownRef.current) clearInterval(countdownRef.current);
     };
   }, [enabled, warn, enterFullscreen]);
 
+  // ── Disqualified screen ────────────────────────────────────────────────────
   if (disqualified) {
     return (
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#000008] text-center px-6">
+      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white text-center px-6">
         <div className="text-6xl mb-6">🚫</div>
-        <h1 className="text-2xl font-extrabold text-red-400 mb-3">Session Disqualified</h1>
-        <p className="text-[var(--text-2)] max-w-md mb-3 text-sm leading-relaxed">
+        <h1 className="text-2xl font-extrabold text-red-500 mb-3">Session Disqualified</h1>
+        <p className="text-gray-600 max-w-md mb-3 text-sm leading-relaxed">
           Your {sessionType} session was terminated after {maxWarnings} integrity violations.
           This incident has been recorded.
         </p>
-        <div className="text-xs text-[var(--text-3)] mb-6 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 max-w-sm">
+        <div className="text-xs text-gray-500 mb-6 bg-red-50 border border-red-200 rounded-xl px-4 py-3 max-w-sm">
           Violations: tab switching, exiting fullscreen, or leaving the exam window.
         </div>
         <button
@@ -139,45 +133,40 @@ export function FullscreenGuard({
 
   return (
     <>
-      {/* Fullscreen enter prompt */}
-      {enabled && !disqualified && (
-        <div
-          className="fixed top-2 left-1/2 -translate-x-1/2 z-[999] px-3 py-1.5 rounded-xl text-[11px] font-semibold flex items-center gap-2 pointer-events-none"
-          style={{ background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)", backdropFilter: "blur(8px)" }}
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-          Anti-Cheat Active · {maxWarnings - warnings} warnings remaining
+      {/* Persistent status bar */}
+      {enabled && (
+        <div className="fixed top-0 left-0 right-0 z-[998] flex items-center justify-center gap-2 py-1.5 text-[11px] font-semibold bg-red-50 border-b border-red-200 text-red-600">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+          Anti-Cheat Active &mdash; {maxWarnings - warnings} of {maxWarnings} warnings remaining
         </div>
       )}
 
       {children}
 
-      {/* Warning overlay */}
+      {/* Persistent warning overlay — does NOT auto-dismiss */}
       {showWarning && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-sm px-4">
-          <div
-            className="rounded-2xl p-4 shadow-2xl"
-            style={{ background: "rgba(30,10,10,0.97)", border: "1px solid rgba(239,68,68,0.4)", backdropFilter: "blur(20px)" }}
-          >
-            <div className="flex items-start gap-3">
-              <div className="text-2xl">⚠️</div>
-              <div className="flex-1">
-                <div className="font-bold text-red-300 text-sm mb-1">
-                  Anti-Cheat Warning ({warnings}/{maxWarnings})
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-sm mx-4 rounded-2xl bg-white border border-red-300 shadow-2xl p-6">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="text-3xl">⚠️</div>
+              <div>
+                <div className="font-extrabold text-red-600 text-base mb-1">
+                  Integrity Warning {warnings}/{maxWarnings}
                 </div>
-                <div className="text-red-200/80 text-xs leading-relaxed mb-2">{warningMsg}</div>
-                {warnings < maxWarnings ? (
-                  <div className="text-red-400/60 text-xs">
-                    {maxWarnings - warnings} warning{maxWarnings - warnings !== 1 ? "s" : ""} remaining before disqualification.
-                  </div>
-                ) : (
-                  <div className="text-red-400 text-xs font-bold">DISQUALIFYING...</div>
-                )}
-              </div>
-              <div className="text-red-400 text-xs font-mono bg-red-500/10 rounded-lg w-7 h-7 flex items-center justify-center flex-shrink-0">
-                {countdown}
+                <div className="text-gray-700 text-sm leading-relaxed">{warningMsg}</div>
               </div>
             </div>
+            <div className="text-xs text-gray-500 mb-4 bg-red-50 rounded-lg p-3 border border-red-100">
+              {warnings < maxWarnings
+                ? `${maxWarnings - warnings} violation${maxWarnings - warnings !== 1 ? "s" : ""} remaining before automatic disqualification.`
+                : "This is your final warning. Next violation will disqualify you."}
+            </div>
+            <button
+              onClick={dismissWarning}
+              className="w-full py-2.5 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-colors"
+            >
+              I Understand — Return to {sessionType === "interview" ? "Interview" : "Challenge"}
+            </button>
           </div>
         </div>
       )}

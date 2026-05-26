@@ -2,25 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Design Tokens ──────────────────────────────────────────────────────────── */
-:root,
-[data-theme="dark"] {
-  /* Backgrounds — deep navy-black */
-  --bg-1:        #000008;
-  --bg-2:        #07070f;
-  --bg-3:        #0d0d1a;
-  --surface-card:#0d0d1a;
+/* ─── Design Tokens — Light (default) ───────────────────────────────────────── */
+:root {
+  /* Backgrounds — clean white SaaS */
+  --bg-1:        #ffffff;
+  --bg-2:        #f8fafc;
+  --bg-3:        #f1f5f9;
+  --surface-card:#ffffff;
 
   /* Text */
-  --text-1:      #f0f4ff;
-  --text-2:      #8892b0;
-  --text-3:      #4a5568;
+  --text-1:      #0f172a;
+  --text-2:      #475569;
+  --text-3:      #94a3b8;
 
   /* Borders */
-  --border:      rgba(255,255,255,0.07);
-  --border-md:   rgba(255,255,255,0.12);
+  --border:      rgba(0,0,0,0.08);
+  --border-md:   rgba(0,0,0,0.14);
 
-  /* Brand — electric blue / violet */
+  /* Brand — electric blue / violet (unchanged) */
   --brand:       #4361ee;
   --brand-dark:  #3451d1;
   --brand-light: #6c8aff;
@@ -30,6 +29,21 @@
 
   --font-jakarta: "Plus Jakarta Sans";
   --font-mono:    "Fira Code";
+}
+
+/* ─── Dark theme override ────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-1:        #000008;
+  --bg-2:        #07070f;
+  --bg-3:        #0d0d1a;
+  --surface-card:#0d0d1a;
+
+  --text-1:      #f0f4ff;
+  --text-2:      #8892b0;
+  --text-3:      #4a5568;
+
+  --border:      rgba(255,255,255,0.07);
+  --border-md:   rgba(255,255,255,0.12);
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────────── */
@@ -94,8 +108,8 @@ code, pre, .font-mono { font-family: var(--font-mono), "Fira Code", "Courier New
   to   { transform: translateX(0); }
 }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(67,97,238,0.3); }
-  50%       { box-shadow: 0 0 50px rgba(67,97,238,0.6), 0 0 80px rgba(124,58,237,0.3); }
+  0%, 100% { box-shadow: 0 0 20px rgba(67,97,238,0.2); }
+  50%       { box-shadow: 0 0 50px rgba(67,97,238,0.4), 0 0 80px rgba(124,58,237,0.2); }
 }
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
@@ -109,10 +123,47 @@ code, pre, .font-mono { font-family: var(--font-mono), "Fira Code", "Courier New
   from { opacity: 0; transform: translateY(16px) scale(0.97); }
   to   { opacity: 1; transform: translateY(0)    scale(1);    }
 }
+@keyframes xpPop {
+  0%   { opacity: 0; transform: translateY(0)    scale(0.8); }
+  40%  { opacity: 1; transform: translateY(-28px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-56px) scale(1); }
+}
 
-/* ─── Utilities ──────────────────────────────────────────────────────────────── */
+/* ─── Glass — light & dark variants ─────────────────────────────────────────── */
+.glass {
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(0,0,0,0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+}
+.glass-hover:hover {
+  background: rgba(255,255,255,0.98);
+  border-color: rgba(0,0,0,0.12);
+}
+
+[data-theme="dark"] .glass {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow: none;
+}
+[data-theme="dark"] .glass-hover:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* ─── Glow effects ───────────────────────────────────────────────────────────── */
+.glow-blue   { box-shadow: 0 0 40px rgba(67,97,238,0.12); }
+.glow-violet { box-shadow: 0 0 40px rgba(124,58,237,0.12); }
+.glow-cyan   { box-shadow: 0 0 40px rgba(6,182,212,0.12); }
+
+[data-theme="dark"] .glow-blue   { box-shadow: 0 0 40px rgba(67,97,238,0.25); }
+[data-theme="dark"] .glow-violet { box-shadow: 0 0 40px rgba(124,58,237,0.25); }
+[data-theme="dark"] .glow-cyan   { box-shadow: 0 0 40px rgba(6,182,212,0.25); }
+
+/* ─── Gradient text ──────────────────────────────────────────────────────────── */
 .gradient-text {
-  background: linear-gradient(135deg, #6c8aff, #a78bfa, #67e8f9);
+  background: linear-gradient(135deg, #4361ee, #7c3aed, #06b6d4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -129,19 +180,22 @@ code, pre, .font-mono { font-family: var(--font-mono), "Fira Code", "Courier New
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.glass {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+
+/* ─── Card shadow (light-mode soft depth) ────────────────────────────────────── */
+.card-shadow {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
 }
-.glass-hover:hover {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.12);
+[data-theme="dark"] .card-shadow { box-shadow: none; }
+
+/* ─── XP pop animation ───────────────────────────────────────────────────────── */
+.xp-pop {
+  animation: xpPop 1.2s ease-out forwards;
+  pointer-events: none;
+  position: absolute;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #4361ee;
 }
-.glow-blue  { box-shadow: 0 0 40px rgba(67,97,238,0.25); }
-.glow-violet { box-shadow: 0 0 40px rgba(124,58,237,0.25); }
-.glow-cyan  { box-shadow: 0 0 40px rgba(6,182,212,0.25); }
 
 /* ─── Reduced motion ─────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
