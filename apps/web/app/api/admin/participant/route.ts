@@ -27,11 +27,17 @@ export async function PATCH(request: Request) {
 
   switch (action) {
     case "ban":
-      await admin.auth.admin.updateUserById(userId, { ban_duration: "87600h" });
+      await Promise.all([
+        admin.auth.admin.updateUserById(userId, { ban_duration: "87600h" }),
+        admin.from("profiles").update({ is_banned: true }).eq("id", userId),
+      ]);
       break;
 
     case "unban":
-      await admin.auth.admin.updateUserById(userId, { ban_duration: "none" });
+      await Promise.all([
+        admin.auth.admin.updateUserById(userId, { ban_duration: "none" }),
+        admin.from("profiles").update({ is_banned: false }).eq("id", userId),
+      ]);
       break;
 
     case "reset_xp":

@@ -3,22 +3,28 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import type { Profile, Submission } from "@upgradian/types";
+import type { Profile, Submission, Challenge } from "@upgradian/types";
 import { Card, RankBadge, DifficultyBadge, StatusBadge, XPBadge } from "@upgradian/ui";
 import { useGameStore } from "@/store/gameStore";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
-import { SEED_CHALLENGES } from "@/lib/challenges-seed";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   show:   { opacity: 1, y: 0, transition: { duration: .5, ease: [.22, 1, .36, 1] } },
 };
 
+interface DailyInfo {
+  challenge:     Challenge;
+  xp_multiplier: number;
+  bonus_xp:      number;
+}
+
 interface DashboardClientProps {
   profile: Profile | null;
   recentSubmissions: (Submission & { challenge?: { title: string; difficulty: string; slug: string } | null })[];
   topPlayers: Pick<Profile, "username" | "full_name" | "total_xp" | "rank" | "avatar_url">[];
+  dailyChallenge: DailyInfo | null;
 }
 
 interface StatItem {
@@ -35,13 +41,6 @@ const STATS: StatItem[] = [
   { icon: "🔥", label: "Streak",     key: "streak_days",       color: "text-orange-400", suffix: "d" },
   { icon: "🎯", label: "Missions",   key: "missions_done",     color: "text-sky-400"   },
 ];
-
-function getDailyChallenge() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86400000);
-  return SEED_CHALLENGES[dayOfYear % SEED_CHALLENGES.length];
-}
 
 function useCountdown() {
   const [timeLeft, setTimeLeft] = useState("");
@@ -62,7 +61,7 @@ function useCountdown() {
   return timeLeft;
 }
 
-export function DashboardClient({ profile, recentSubmissions, topPlayers }: DashboardClientProps) {
+export function DashboardClient({ profile, recentSubmissions, topPlayers, dailyChallenge }: DashboardClientProps) {
   const { setFromProfile, xp, rank, nextRankInfo } = useGameStore();
   const timeLeft = useCountdown();
 
@@ -79,7 +78,6 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
   const safeProgress  = Number(progress ?? 0);
   const challengesSolved = Number((profile as Record<string, number> | null)?.challenges_solved ?? 0);
   const profileComplete  = !!(profile?.full_name);
-  const dailyChallenge   = getDailyChallenge();
 
   const safeSubmissions = Array.isArray(recentSubmissions) ? recentSubmissions : [];
   const safePlayers     = Array.isArray(topPlayers) ? topPlayers : [];
@@ -109,16 +107,16 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers }: Dash
             </div>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-base font-bold text-[var(--text-1)] mb-1">{dailyChallenge.title}</h3>
+                <h3 className="text-base font-bold text-[var(--text-1)] mb-1">{dailyChallenge.challenge.title}</h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <DifficultyBadge difficulty={dailyChallenge.difficulty} />
+                  <DifficultyBadge difficulty={dailyChallenge.challenge.difficulty} />
                   <span className="text-xs font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md">
-                    +{(dailyChallenge.xp_reward ?? 0) * 2} XP bonus
+                    +{((dailyChallenge.challenge.xp_reward ?? 0) * dailyChallenge.xp_multiplier) + dailyChallenge.bonus_xp} XP bonus
                   </span>
                 </div>
               </div>
               <Link
-                href={`/arena/${dailyChallenge.slug}`}
+                href={`/arena/${dailyChallenge.challenge.slug}`}
                 className="flex-shrink-0 px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 text-xs font-bold transition-colors whitespace-nowrap"
               >
                 Solve Now →

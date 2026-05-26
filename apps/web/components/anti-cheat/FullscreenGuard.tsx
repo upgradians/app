@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
 interface FullscreenGuardProps {
-  children: React.ReactNode;
-  maxWarnings?: number;
+  children:      React.ReactNode;
+  maxWarnings?:  number;
   onDisqualify?: () => void;
-  enabled?: boolean;
-  sessionType?: "coding" | "interview";
+  enabled?:      boolean;
+  sessionType?:  "coding" | "interview";
+  challengeId?:  string;
+  sessionId?:    string;
 }
 
 export function FullscreenGuard({
@@ -16,14 +18,39 @@ export function FullscreenGuard({
   onDisqualify,
   enabled = true,
   sessionType = "coding",
+  challengeId,
+  sessionId,
 }: FullscreenGuardProps) {
   const [warnings,     setWarnings]     = useState(0);
   const [showWarning,  setShowWarning]  = useState(false);
   const [disqualified, setDisqualified] = useState(false);
   const [warningMsg,   setWarningMsg]   = useState("");
-  // warningRef prevents firing multiple violations before user dismisses
-  const warningActive = useRef(false);
-  const warningsCount = useRef(0);
+  const warningActive  = useRef(false);
+  const warningsCount  = useRef(0);
+
+  const logEvent = useCallback(async (
+    eventType:      string,
+    count:          number,
+    isDisqualified: boolean,
+  ) => {
+    try {
+      await fetch("/api/anti-cheat", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_type:   sessionType,
+          event_type:     eventType,
+          challenge_id:   challengeId ?? null,
+          session_id:     sessionId   ?? null,
+          warning_count:  count,
+          is_disqualified: isDisqualified,
+          metadata: { user_agent: navigator.userAgent },
+        }),
+      });
+    } catch {
+      // Non-blocking — do not disrupt the session
+    }
+  }, [sessionType, challengeId, sessionId]);
 
   const enterFullscreen = useCallback(async () => {
     try {
@@ -35,7 +62,7 @@ export function FullscreenGuard({
     }
   }, []);
 
-  const warn = useCallback((reason: string) => {
+  const warn = useCallback((reason: string, eventType: string) => {
     if (!enabled || warningActive.current) return;
 
     warningActive.current = true;
@@ -46,17 +73,19 @@ export function FullscreenGuard({
     setWarningMsg(reason);
     setShowWarning(true);
 
-    if (next >= maxWarnings) {
+    const isDq = next >= maxWarnings;
+    void logEvent(eventType, next, isDq);
+
+    if (isDq) {
       setDisqualified(true);
       setShowWarning(false);
       onDisqualify?.();
     }
-  }, [enabled, maxWarnings, onDisqualify]);
+  }, [enabled, maxWarnings, onDisqualify, logEvent]);
 
   const dismissWarning = useCallback(() => {
     setShowWarning(false);
     warningActive.current = false;
-    // Re-enter fullscreen after dismiss
     void enterFullscreen();
   }, [enterFullscreen]);
 
@@ -67,18 +96,17 @@ export function FullscreenGuard({
 
     function onFullscreenChange() {
       if (!document.fullscreenElement) {
-        warn("You exited fullscreen. Press Dismiss to continue.");
+        warn("You exited fullscreen. Press Dismiss to continue.", "fullscreen_exit");
       }
     }
     function onVisibilityChange() {
       if (document.hidden) {
-        warn("Tab switch detected. Return to the exam tab.");
+        warn("Tab switch detected. Return to the exam tab.", "tab_switch");
       }
     }
     function onWindowBlur() {
-      // Only fire if the page itself lost focus (not just an element)
       if (!document.hidden && !document.fullscreenElement) {
-        warn("Window focus lost. Stay on the exam window.");
+        warn("Window focus lost. Stay on the exam window.", "window_blur");
       }
     }
     function onKeyDown(e: KeyboardEvent) {
@@ -108,7 +136,6 @@ export function FullscreenGuard({
     };
   }, [enabled, warn, enterFullscreen]);
 
-  // ── Disqualified screen ────────────────────────────────────────────────────
   if (disqualified) {
     return (
       <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white text-center px-6">
@@ -133,7 +160,6 @@ export function FullscreenGuard({
 
   return (
     <>
-      {/* Persistent status bar */}
       {enabled && (
         <div className="fixed top-0 left-0 right-0 z-[998] flex items-center justify-center gap-2 py-1.5 text-[11px] font-semibold bg-red-50 border-b border-red-200 text-red-600">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
@@ -143,7 +169,6 @@ export function FullscreenGuard({
 
       {children}
 
-      {/* Persistent warning overlay — does NOT auto-dismiss */}
       {showWarning && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="w-full max-w-sm mx-4 rounded-2xl bg-white border border-red-300 shadow-2xl p-6">
