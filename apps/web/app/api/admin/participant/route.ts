@@ -99,6 +99,12 @@ export async function PATCH(request: Request) {
       await writeModLog(admin, ADMIN_ID, userId, "reset_streak", reason);
       break;
 
+    case "delete_account":
+      await writeModLog(admin, ADMIN_ID, userId, "delete_account", reason);
+      // Deletes the auth.users row; profiles cascades via FK on delete cascade
+      await admin.auth.admin.deleteUser(userId);
+      break;
+
     default:
       return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   }
