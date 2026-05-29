@@ -405,7 +405,7 @@ export function AssessmentClient({ track }: { track: AssessmentTrack }) {
         </div>
 
         {/* ── Navigation footer ── */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-white flex-shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 pt-4 pb-6 sm:pb-4 border-t border-gray-200 bg-white flex-shrink-0">
           <button
             onClick={() => setCurrentQ(q => Math.max(0, q - 1))}
             disabled={currentQ === 0}

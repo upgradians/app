@@ -313,13 +313,12 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers, dailyC
       {/* Quick actions */}
       <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: .32 }}>
         <h2 className="text-base font-bold text-[var(--text-1)] mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { href: "/arena",       icon: "⚔️",  label: "Solve a Challenge",  color: "from-brand/15 to-brand/5"              },
-            { href: "/assessment",  icon: "📋",  label: "Take Assessment",    color: "from-orange-500/15 to-orange-500/5"    },
-            { href: "/contests",    icon: "🏆",  label: "Join a Contest",     color: "from-amber-500/15 to-amber-500/5"      },
-            { href: "/interview",   icon: "🤖",  label: "Practice Interview", color: "from-indigo-500/15 to-indigo-500/5"    },
-            { href: "/internships", icon: "🎯",  label: "Pick a Mission",     color: "from-emerald-500/15 to-emerald-500/5"  },
+            { href: "/arena",       icon: "⚔️",  label: "Solve a Challenge", color: "from-brand/15 to-brand/5"             },
+            { href: "/assessment",  icon: "📋",  label: "Take Assessment",   color: "from-orange-500/15 to-orange-500/5"   },
+            { href: "/contests",    icon: "🏆",  label: "Join a Contest",    color: "from-amber-500/15 to-amber-500/5"     },
+            { href: "/internships", icon: "🎯",  label: "Pick a Mission",    color: "from-emerald-500/15 to-emerald-500/5" },
           ].map((a) => (
             <Link key={a.href} href={a.href}>
               <Card

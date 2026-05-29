@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { Send, Loader2, Bot, Minimize2, Phone } from "lucide-react";
 
 interface Message {
@@ -37,6 +38,7 @@ function TypingDots() {
 }
 
 export function ChatWidget() {
+  const pathname = usePathname();
   const [open,    setOpen]    = useState(false);
   const [input,   setInput]   = useState("");
   const [loading, setLoading] = useState(false);
@@ -93,6 +95,12 @@ export function ChatWidget() {
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); }
   };
+
+  // Hide on proctored routes — prevents overlap and enforces test integrity.
+  const isProctored =
+    pathname.startsWith("/assessment/") ||
+    pathname.startsWith("/interview");
+  if (isProctored) return null;
 
   return (
     <>
