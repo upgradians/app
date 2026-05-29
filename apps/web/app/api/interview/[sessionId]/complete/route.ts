@@ -11,25 +11,31 @@ interface EvaluationResult {
 }
 
 function generateLocalEvaluation(answers: Record<string, string>): EvaluationResult {
-  const answerCount = Object.keys(answers).length;
-  const totalLength = Object.values(answers).reduce((sum, a) => sum + a.length, 0);
-  const avgLength   = totalLength / Math.max(answerCount, 1);
+  const answerCount  = Object.keys(answers).length;
+  const answerValues = Object.values(answers);
+  const totalLength  = answerValues.reduce((sum, a) => sum + a.length, 0);
+  const avgLength    = totalLength / Math.max(answerCount, 1);
+  const hasCode      = answerValues.some(a =>
+    a.includes("function ") || a.includes("const ") || a.includes("def ") || a.includes("```")
+  );
 
-  const rawScore = Math.min(100, Math.max(40, Math.round(
-    (avgLength > 200 ? 75 : avgLength > 100 ? 65 : 50) +
-    (answerCount >= 5 ? 10 : answerCount * 2)
+  // Deterministic base score derived from answer depth and completeness — no randomness.
+  const baseScore = Math.min(100, Math.max(30, Math.round(
+    (avgLength > 300 ? 76 : avgLength > 200 ? 68 : avgLength > 100 ? 58 : 44) +
+    (answerCount >= 5 ? 8 : answerCount * 1.5)
   )));
 
-  const technicalKnowledge = Math.min(100, rawScore + Math.round((Math.random() - 0.5) * 10));
-  const problemSolving     = Math.min(100, rawScore + Math.round((Math.random() - 0.5) * 10));
-  const communication      = Math.min(100, rawScore + Math.round((Math.random() - 0.5) * 8));
-  const codeQuality        = Math.min(100, rawScore + Math.round((Math.random() - 0.5) * 12));
+  // Each breakdown metric derived from a measurable answer characteristic.
+  const technicalKnowledge = Math.min(100, Math.max(30, baseScore + (avgLength > 250 ? 3 : -3)));
+  const problemSolving     = Math.min(100, Math.max(30, baseScore - (answerCount < 3 ? 5 : 0)));
+  const communication      = Math.min(100, Math.max(30, baseScore + (avgLength > 150 ? 2 : -4)));
+  const codeQuality        = Math.min(100, Math.max(30, baseScore + (hasCode ? 4 : -6)));
 
   return {
-    score: rawScore,
-    feedback: rawScore >= 75
+    score: baseScore,
+    feedback: baseScore >= 75
       ? "Strong performance overall. Your answers showed solid technical understanding and clear communication. Keep practicing to reach expert level."
-      : rawScore >= 55
+      : baseScore >= 55
       ? "Good effort! Your answers covered the key concepts. Focus on providing more detail and concrete examples to strengthen your responses."
       : "Keep practicing! Try to give more comprehensive answers with real-world examples. Use the Coding Arena to sharpen your technical skills.",
     breakdown: {

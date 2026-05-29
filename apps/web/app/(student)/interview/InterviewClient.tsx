@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { Button } from "@upgradian/ui";
 import toast from "react-hot-toast";
 import { FullscreenGuard } from "@/components/anti-cheat/FullscreenGuard";
@@ -429,28 +430,33 @@ export function InterviewClient() {
           {/* Stage 3: Results */}
           {stage === "results" && results && (
             <motion.div key="results" initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }}>
-              <div className="text-center mb-8">
-                <div className="text-6xl mb-4">
+              {/* Score hero */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 mb-5 text-center">
+                <div className="text-5xl mb-4">
                   {results.score >= 80 ? "🎉" : results.score >= 60 ? "👍" : "💪"}
                 </div>
-                <div className="text-5xl font-extrabold text-brand mb-2">
-                  {Number(results.score ?? 0)}<span className="text-2xl text-[var(--text-3)]">/100</span>
+                <div className="text-6xl font-extrabold text-orange-500 mb-1 tracking-tight">
+                  {Number(results.score ?? 0)}<span className="text-3xl font-bold text-slate-300">/100</span>
                 </div>
-                <div className="text-[var(--text-2)] text-sm">Overall Interview Score</div>
+                <div className="text-slate-500 text-sm font-semibold mt-1">Overall Interview Score</div>
+                <div className="mt-4 inline-block px-3 py-1 rounded-full text-xs font-bold bg-orange-50 text-orange-600 border border-orange-200">
+                  {results.score >= 80 ? "Excellent" : results.score >= 60 ? "Good" : "Needs Improvement"}
+                </div>
               </div>
 
-              <div className="bg-[var(--bg-2)] rounded-2xl border border-[var(--border)] p-5 mb-5">
-                <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-3">Score Breakdown</div>
-                <div className="space-y-3">
+              {/* Score breakdown */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-5">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Score Breakdown</div>
+                <div className="space-y-4">
                   {Object.entries(results.breakdown ?? {}).map(([key, val]) => (
                     <div key={key}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="font-semibold text-[var(--text-2)] capitalize">{key.replace("_", " ")}</span>
-                        <span className="font-bold text-brand">{Number(val ?? 0)}%</span>
+                      <div className="flex justify-between text-sm mb-1.5">
+                        <span className="font-semibold text-slate-700 capitalize">{key.replace(/_/g, " ")}</span>
+                        <span className="font-bold text-orange-500">{Number(val ?? 0)}%</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-[var(--bg-3)] overflow-hidden">
+                      <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
                         <motion.div
-                          className="h-full rounded-full bg-gradient-to-r from-brand to-brand/60"
+                          className="h-full rounded-full bg-gradient-to-r from-orange-500 to-orange-400"
                           initial={{ width: 0 }}
                           animate={{ width: `${Number(val ?? 0)}%` }}
                           transition={{ duration: .8, ease: "easeOut" }}
@@ -461,14 +467,27 @@ export function InterviewClient() {
                 </div>
               </div>
 
-              <div className="bg-[var(--bg-2)] rounded-2xl border border-[var(--border)] p-5 mb-6">
-                <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">AI Feedback</div>
-                <p className="text-sm text-[var(--text-2)] leading-relaxed">{results.feedback ?? "No feedback available."}</p>
+              {/* AI Feedback */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">AI Feedback</div>
+                <p className="text-sm text-slate-600 leading-relaxed">{results.feedback ?? "No feedback available."}</p>
               </div>
 
-              <Button variant="secondary" onClick={() => { setStage("select"); setResults(null); setSession(null); setAnswer(""); }} className="w-full">
-                Try Another Session
-              </Button>
+              {/* Actions */}
+              <div className="flex gap-3">
+                <Link
+                  href="/dashboard"
+                  className="flex-1 flex items-center justify-center px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors"
+                >
+                  ← Dashboard
+                </Link>
+                <button
+                  onClick={() => { setStage("select"); setResults(null); setSession(null); setAnswer(""); }}
+                  className="flex-[2] px-4 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition-colors"
+                >
+                  Try Another Session →
+                </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
