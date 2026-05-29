@@ -282,15 +282,44 @@ export function DashboardClient({ profile, recentSubmissions, topPlayers, dailyC
         </motion.div>
       </div>
 
+      {/* Assessment Centre banner */}
+      <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: .28 }}>
+        <Link href="/assessment" className="block group">
+          <div className="relative overflow-hidden rounded-2xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-orange-600/5 px-5 py-4 hover:border-orange-500/50 hover:shadow-lg transition-all">
+            <div className="absolute inset-y-0 right-0 w-32 flex items-center justify-center text-6xl opacity-10 select-none pointer-events-none">
+              📋
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-orange-400">New</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30 font-semibold">
+                    Proctored
+                  </span>
+                </div>
+                <h3 className="font-extrabold text-[var(--text-1)] text-base">Assessment Centre</h3>
+                <p className="text-xs text-[var(--text-3)] mt-0.5">
+                  14 tracks · 20 questions each · Camera &amp; mic proctored
+                </p>
+              </div>
+              <span className="flex-shrink-0 px-4 py-2 rounded-xl bg-orange-500 text-white text-xs font-bold group-hover:bg-orange-600 transition-colors">
+                Take Test →
+              </span>
+            </div>
+          </div>
+        </Link>
+      </motion.div>
+
       {/* Quick actions */}
-      <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: .3 }}>
+      <motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: .32 }}>
         <h2 className="text-base font-bold text-[var(--text-1)] mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
-            { href: "/arena",       icon: "⚔️",  label: "Solve a Challenge",  color: "from-brand/15 to-brand/5"           },
-            { href: "/contests",    icon: "🏆", label: "Join a Contest",      color: "from-amber-500/15 to-amber-500/5"   },
-            { href: "/interview",   icon: "🤖", label: "Practice Interview",  color: "from-indigo-500/15 to-indigo-500/5" },
-            { href: "/internships", icon: "🎯", label: "Pick a Mission",      color: "from-emerald-500/15 to-emerald-500/5" },
+            { href: "/arena",       icon: "⚔️",  label: "Solve a Challenge",  color: "from-brand/15 to-brand/5"              },
+            { href: "/assessment",  icon: "📋",  label: "Take Assessment",    color: "from-orange-500/15 to-orange-500/5"    },
+            { href: "/contests",    icon: "🏆",  label: "Join a Contest",     color: "from-amber-500/15 to-amber-500/5"      },
+            { href: "/interview",   icon: "🤖",  label: "Practice Interview", color: "from-indigo-500/15 to-indigo-500/5"    },
+            { href: "/internships", icon: "🎯",  label: "Pick a Mission",     color: "from-emerald-500/15 to-emerald-500/5"  },
           ].map((a) => (
             <Link key={a.href} href={a.href}>
               <Card

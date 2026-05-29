@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Swords, Trophy, BarChart3, Briefcase,
-  Bot, Map, User, Settings, Menu, Bell, Zap, Flame,
+  Bot, Map, User, Settings, Menu, Bell, Zap, Flame, ClipboardList,
 } from "lucide-react";
 import type { Profile } from "@upgradian/types";
 import { cn } from "@upgradian/ui";
@@ -16,6 +16,7 @@ import { XPNotification } from "@/components/gamification/XPNotification";
 const NAV_ITEMS = [
   { href: "/dashboard",   icon: LayoutDashboard, label: "Dashboard"    },
   { href: "/arena",       icon: Swords,          label: "Coding Arena" },
+  { href: "/assessment",  icon: ClipboardList,   label: "Assessment"   },
   { href: "/contests",    icon: Trophy,          label: "Contests"     },
   { href: "/leaderboard", icon: BarChart3,       label: "Leaderboard"  },
   { href: "/internships", icon: Briefcase,       label: "Internships"  },
