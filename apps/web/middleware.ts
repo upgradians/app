@@ -74,6 +74,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Explicitly set on every response so Vercel's default restrictive
+  // Permissions-Policy cannot override what next.config.ts / vercel.json declare.
+  supabaseResponse.headers.set(
+    "Permissions-Policy",
+    "camera=(self), microphone=(self), fullscreen=(self)"
+  );
+
   return supabaseResponse;
 }
 
