@@ -39,7 +39,7 @@ export function AdminShell({ adminName, children }: AdminShellProps) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--bg-1)]">
+    <div className="flex h-screen overflow-hidden bg-[var(--bg-1)]" data-theme="light">
       {/* ── Sidebar ── */}
       <aside
         id="admin-sidebar"
@@ -53,7 +53,7 @@ export function AdminShell({ adminName, children }: AdminShellProps) {
         {/* Logo */}
         <div className="h-14 flex items-center px-5 border-b border-[var(--border)] gap-2">
           <span className="text-lg font-extrabold tracking-tight text-[var(--text-1)]">
-            Upgradian<span className="text-brand">.</span>Admin
+            Upgradian<span className="text-orange-500">.</span>Admin
           </span>
         </div>
 
@@ -84,13 +84,13 @@ export function AdminShell({ adminName, children }: AdminShellProps) {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 mb-0.5",
                   active
-                    ? "bg-brand/15 text-brand border border-brand/20"
-                    : "text-[var(--text-2)] hover:bg-[var(--bg-3)] hover:text-[var(--text-1)]"
+                    ? "bg-orange-50 text-orange-600 border border-orange-200"
+                    : "text-[var(--text-2)] hover:bg-[var(--bg-3)] hover:text-[var(--text-1)] border border-transparent"
                 )}
               >
                 <span className="text-base w-5 flex-shrink-0" aria-hidden="true">{item.icon}</span>
                 {item.label}
-                {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand" aria-hidden="true" />}
+                {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500" aria-hidden="true" />}
               </Link>
             );
           })}
@@ -125,7 +125,7 @@ export function AdminShell({ adminName, children }: AdminShellProps) {
       {/* ── Main ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="h-14 flex items-center justify-between px-5 border-b border-[var(--border)] bg-[#09090e]/90 backdrop-blur-md">
+        <header className="h-14 flex items-center justify-between px-5 border-b border-[var(--border)] bg-[var(--bg-1)]/95 backdrop-blur-md">
           <button
             onClick={() => setSidebarOpen(true)}
             aria-label="Open admin navigation"

@@ -52,11 +52,11 @@ export function AppShell({ profile, children }: AppShellProps) {
       >
         {/* Logo */}
         <div className="h-16 flex items-center px-5" style={{ borderBottom: "1px solid var(--border)" }}>
-          <Link href="/dashboard" className="flex items-center gap-2 text-base font-extrabold tracking-tight text-white hover:opacity-80 transition-opacity">
+          <Link href="/dashboard" className="flex items-center gap-2 text-base font-extrabold tracking-tight text-[var(--text-1)] hover:opacity-80 transition-opacity">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #4361ee, #7c3aed)" }}>
               <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
             </div>
-            Upgradian<span style={{ color: "#6c8aff" }}>.</span>Tech
+            Upgradian<span className="text-brand">.</span>Tech
           </Link>
         </div>
 
@@ -106,7 +106,7 @@ export function AppShell({ profile, children }: AppShellProps) {
                   "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 mb-0.5",
                   active
                     ? "text-white"
-                    : "hover:bg-white/[0.05] hover:text-white"
+                    : "hover:bg-[var(--bg-3)] hover:text-[var(--text-1)]"
                 )}
                 style={active ? {
                   background: "rgba(67,97,238,0.15)",
@@ -131,7 +131,7 @@ export function AppShell({ profile, children }: AppShellProps) {
         <div className="p-3" style={{ borderTop: "1px solid var(--border)" }}>
           <Link
             href="/settings"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:bg-white/[0.05] hover:text-white"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:bg-[var(--bg-3)] hover:text-[var(--text-1)]"
             style={{ color: "var(--text-3)" }}
           >
             <Settings className="w-4 h-4" strokeWidth={1.5} />
@@ -154,7 +154,7 @@ export function AppShell({ profile, children }: AppShellProps) {
         {/* Top bar */}
         <header
           className="h-16 flex items-center justify-between gap-3 px-4 sm:px-6"
-          style={{ borderBottom: "1px solid var(--border)", background: "rgba(0,0,8,0.9)", backdropFilter: "blur(12px)" }}
+          style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-1)", backdropFilter: "blur(12px)" }}
         >
           {/* Hamburger */}
           <button
@@ -162,7 +162,7 @@ export function AppShell({ profile, children }: AppShellProps) {
             aria-label="Open navigation menu"
             aria-expanded={sidebarOpen}
             aria-controls="sidebar"
-            className="lg:hidden p-2 rounded-xl transition-all hover:bg-white/[0.06]"
+            className="lg:hidden p-2 rounded-xl transition-all hover:bg-[var(--bg-3)]"
             style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}
           >
             <Menu className="w-4 h-4" />
@@ -185,7 +185,7 @@ export function AppShell({ profile, children }: AppShellProps) {
 
             <button
               aria-label="Notifications"
-              className="relative p-2 rounded-xl transition-all hover:bg-white/[0.06]"
+              className="relative p-2 rounded-xl transition-all hover:bg-[var(--bg-3)]"
               style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}
             >
               <Bell className="w-4 h-4" />

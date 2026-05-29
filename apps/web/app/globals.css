@@ -19,7 +19,7 @@
   --border:      rgba(0,0,0,0.08);
   --border-md:   rgba(0,0,0,0.14);
 
-  /* Brand — electric blue / violet (unchanged) */
+  /* Brand — blue (app/dashboard) */
   --brand:       #4361ee;
   --brand-dark:  #3451d1;
   --brand-light: #6c8aff;
@@ -27,8 +27,25 @@
   --cyan:        #06b6d4;
   --amber:       #f59e0b;
 
+  /* Orange — marketing CTA */
+  --orange:      #f97316;
+  --orange-dark: #ea580c;
+
   --font-jakarta: "Plus Jakarta Sans";
   --font-mono:    "Fira Code";
+}
+
+/* ─── Explicit light theme (for marketing wrapper override) ──────────────────── */
+[data-theme="light"] {
+  --bg-1:        #ffffff;
+  --bg-2:        #f8fafc;
+  --bg-3:        #f1f5f9;
+  --surface-card:#ffffff;
+  --text-1:      #0f172a;
+  --text-2:      #475569;
+  --text-3:      #94a3b8;
+  --border:      rgba(0,0,0,0.08);
+  --border-md:   rgba(0,0,0,0.14);
 }
 
 /* ─── Dark theme override ────────────────────────────────────────────────────── */

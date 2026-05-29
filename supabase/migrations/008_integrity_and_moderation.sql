@@ -12,7 +12,6 @@ create index if not exists idx_profiles_xp_leaderboard
   where is_banned = false;
 
 create index if not exists idx_profiles_last_active    on public.profiles (last_active_at desc);
-create index if not exists idx_profiles_suspicious     on public.profiles (suspicious_activity) where suspicious_activity = true;
 
 create index if not exists idx_interview_user_id       on public.interview_sessions (user_id);
 create index if not exists idx_interview_status        on public.interview_sessions (status);
@@ -28,6 +27,8 @@ alter table public.profiles
   add column if not exists suspicious_activity boolean     not null default false,
   add column if not exists violation_count     int         not null default 0,
   add column if not exists temp_ban_until      timestamptz;
+
+create index if not exists idx_profiles_suspicious     on public.profiles (suspicious_activity) where suspicious_activity = true;
 
 -- ============================================================
 -- USER SOLVED CHALLENGES (atomic first-solve gate)

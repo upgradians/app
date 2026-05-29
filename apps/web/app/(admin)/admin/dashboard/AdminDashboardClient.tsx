@@ -64,7 +64,7 @@ export function AdminDashboardClient({ stats, recentUsers, topUsers }: Props) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}>
             <Link href={c.href}>
-              <div className={`bg-gradient-to-br ${c.color} border border-[var(--border)] rounded-2xl p-4 hover:border-brand/30 transition-colors`}>
+              <div className={`bg-gradient-to-br ${c.color} border border-[var(--border)] rounded-2xl p-4 hover:border-orange-300 hover:shadow-sm transition-all`}>
                 <div className="text-xl mb-2">{c.icon}</div>
                 <div className="text-2xl font-extrabold text-[var(--text-1)]">{Number(c.value ?? 0).toLocaleString()}</div>
                 <div className="text-[10px] text-[var(--text-3)] mt-1 font-semibold uppercase tracking-wide">{c.label}</div>
@@ -81,7 +81,7 @@ export function AdminDashboardClient({ stats, recentUsers, topUsers }: Props) {
           <div className="grid grid-cols-2 gap-2">
             {quickActions.map(action => (
               <Link key={action.href} href={action.href}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--bg-3)] border border-[var(--border)] text-xs font-semibold text-[var(--text-2)] hover:border-brand/30 hover:text-brand transition-colors">
+                className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--bg-3)] border border-[var(--border)] text-xs font-semibold text-[var(--text-2)] hover:border-orange-300 hover:text-orange-600 transition-colors">
                 <span>{action.icon}</span>
                 <span className="truncate">{action.label}</span>
               </Link>
@@ -93,7 +93,7 @@ export function AdminDashboardClient({ stats, recentUsers, topUsers }: Props) {
         <div className="bg-[var(--bg-2)] border border-[var(--border)] rounded-2xl overflow-hidden">
           <div className="px-5 py-3.5 border-b border-[var(--border)] flex items-center justify-between">
             <h2 className="font-bold text-sm text-[var(--text-1)]">🏆 Top XP Users</h2>
-            <Link href="/admin/participants" className="text-xs text-brand hover:underline font-semibold">View all →</Link>
+            <Link href="/admin/participants" className="text-xs text-orange-500 hover:underline font-semibold">View all →</Link>
           </div>
           <div className="divide-y divide-[var(--border)]">
             {(topUsers ?? []).map((u, i) => (
@@ -121,7 +121,7 @@ export function AdminDashboardClient({ stats, recentUsers, topUsers }: Props) {
         <div className="bg-[var(--bg-2)] border border-[var(--border)] rounded-2xl overflow-hidden">
           <div className="px-5 py-3.5 border-b border-[var(--border)] flex items-center justify-between">
             <h2 className="font-bold text-sm text-[var(--text-1)]">Recent Signups</h2>
-            <Link href="/admin/users" className="text-xs text-brand hover:underline font-semibold">View all →</Link>
+            <Link href="/admin/users" className="text-xs text-orange-500 hover:underline font-semibold">View all →</Link>
           </div>
           <div className="divide-y divide-[var(--border)]">
             {(recentUsers ?? []).map((u) => (

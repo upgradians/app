@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Zap, MapPin, Mail, ArrowRight, MessageCircle, Building2, Clock, Send, CheckCircle } from "lucide-react";
+import { MapPin, Mail, ArrowRight, MessageCircle, Building2, Clock, Send, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ContactPage() {

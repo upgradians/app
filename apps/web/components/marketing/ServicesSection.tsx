@@ -49,34 +49,43 @@ const SERVICES = [
     title: "AI Automation Systems",
     desc: "Intelligent workflow automation, RPA bots, and API integrations that eliminate manual work and cut operational costs by up to 70%.",
     tags: ["RPA", "Automation", "APIs"],
-    accent: "#ec4899",
+    accent: "#f97316",
   },
   {
     icon: Rocket,
     title: "Startup MVP Development",
-    desc: "We partner with early-stage startups to architect and build MVPs fast — validated, deployed, and investor-ready in 4-8 weeks.",
+    desc: "We partner with early-stage startups to architect and build MVPs fast — validated, deployed, and investor-ready in 4–8 weeks.",
     tags: ["MVP", "Rapid Dev", "Go-to-Market"],
-    accent: "#6c8aff",
+    accent: "#4361ee",
   },
 ];
 
 export function ServicesSection() {
   return (
-    <section id="services" className="relative py-32 overflow-hidden" style={{ background: "#07070f" }}>
-      <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+    <section id="services" className="relative py-32 overflow-hidden bg-slate-50">
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: "radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+      />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
         <ScrollReveal className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold mb-5 uppercase tracking-widest" style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.45)" }}>
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold mb-5 uppercase tracking-widest"
+            style={{ borderColor: "rgba(249,115,22,0.2)", background: "rgba(249,115,22,0.06)", color: "#ea580c" }}
+          >
             Our Services
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mb-4">
             End-to-End Software{" "}
-            <span style={{ backgroundImage: "linear-gradient(135deg, #6c8aff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+            <span style={{ backgroundImage: "linear-gradient(135deg, #f97316, #ea580c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               Engineering
             </span>
           </h2>
-          <p className="text-white/35 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-500 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
             From AI models to enterprise platforms — complete technology solutions built by senior engineers who care about quality.
           </p>
         </ScrollReveal>
@@ -86,18 +95,27 @@ export function ServicesSection() {
             const Icon = s.icon;
             return (
               <ScrollReveal key={s.title} delay={i * 0.06}>
-                <div className="relative rounded-2xl p-6 h-full transition-all duration-300 hover:-translate-y-1 hover:bg-white/[0.045] hover:border-white/15 group cursor-default border border-white/[0.07] bg-white/[0.025]">
-                  {/* Top accent glow on hover */}
-                  <div className="absolute inset-x-0 top-0 h-px rounded-t-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(90deg, transparent, ${s.accent}60, transparent)` }} />
+                <div className="relative rounded-2xl p-6 h-full bg-white border border-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 group cursor-default">
+                  {/* Top accent line on hover */}
+                  <div
+                    className="absolute inset-x-0 top-0 h-0.5 rounded-t-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{ background: `linear-gradient(90deg, transparent, ${s.accent}80, transparent)` }}
+                  />
 
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110" style={{ background: `${s.accent}18`, border: `1px solid ${s.accent}30` }}>
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
+                    style={{ background: `${s.accent}12`, border: `1px solid ${s.accent}25` }}
+                  >
                     <Icon className="w-5 h-5" style={{ color: s.accent }} strokeWidth={1.5} />
                   </div>
-                  <h3 className="text-sm font-bold text-white mb-2">{s.title}</h3>
-                  <p className="text-xs leading-relaxed mb-5" style={{ color: "rgba(136,146,176,0.7)" }}>{s.desc}</p>
+                  <h3 className="text-sm font-bold text-slate-900 mb-2">{s.title}</h3>
+                  <p className="text-xs leading-relaxed mb-5 text-slate-500">{s.desc}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {s.tags.map(tag => (
-                      <span key={tag} className="px-2 py-0.5 rounded-md text-[11px] font-medium" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
+                      <span
+                        key={tag}
+                        className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 border border-slate-200 text-slate-600"
+                      >
                         {tag}
                       </span>
                     ))}

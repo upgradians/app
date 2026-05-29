@@ -49,21 +49,25 @@ const SOCIALS = [
 
 export function MarketingFooter() {
   return (
-    <footer style={{ background: "#000008", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-      {/* Top gradient line */}
-      <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(67,97,238,0.4), rgba(124,58,237,0.4), transparent)" }} />
-
+    <footer className="bg-slate-50 border-t border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-white hover:opacity-80 transition-opacity mb-3">
-              <div className="w-7 h-7 rounded-lg bg-gradient-brand flex items-center justify-center flex-shrink-0">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-slate-900 hover:opacity-80 transition-opacity mb-3"
+            >
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, #f97316, #ea580c)" }}
+              >
                 <Zap className="w-4 h-4 text-white" strokeWidth={2.5} />
               </div>
-              Upgradian<span className="text-brand">.</span>Tech
+              Upgradian<span className="text-orange-500">.</span>Tech
             </Link>
-            <p className="text-xs leading-relaxed max-w-[200px] mb-5" style={{ color: "rgba(136,146,176,0.5)" }}>
+            <p className="text-xs leading-relaxed max-w-[200px] mb-5 text-slate-500">
               Building AI Products.
               <br />
               Empowering Future Developers.
@@ -76,7 +80,7 @@ export function MarketingFooter() {
                   aria-label={label}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110 hover:bg-white/[0.06] text-white/30 hover:text-white/80 border border-white/[0.07]"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110 border border-slate-200 text-slate-400 hover:text-slate-700 hover:border-slate-300 hover:bg-white"
                 >
                   {svg}
                 </a>
@@ -87,7 +91,7 @@ export function MarketingFooter() {
           {/* Link columns */}
           {Object.entries(COLUMNS).map(([title, links]) => (
             <div key={title}>
-              <h4 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "rgba(255,255,255,0.3)" }}>
+              <h4 className="text-xs font-bold uppercase tracking-widest mb-4 text-slate-400">
                 {title}
               </h4>
               <ul className="space-y-2.5">
@@ -95,7 +99,7 @@ export function MarketingFooter() {
                   <li key={label}>
                     <Link
                       href={href}
-                      className="text-sm transition-colors duration-200 text-white/40 hover:text-white/80"
+                      className="text-sm text-slate-500 hover:text-slate-900 transition-colors duration-200"
                     >
                       {label}
                     </Link>
@@ -106,11 +110,11 @@ export function MarketingFooter() {
           ))}
         </div>
 
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <p className="text-xs" style={{ color: "rgba(136,146,176,0.3)" }}>
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200">
+          <p className="text-xs text-slate-400">
             © {new Date().getFullYear()} Upgradian Technology Pvt. Ltd. All rights reserved.
           </p>
-          <p className="text-xs" style={{ color: "rgba(136,146,176,0.3)" }}>
+          <p className="text-xs text-slate-400">
             Made with care in India
           </p>
         </div>

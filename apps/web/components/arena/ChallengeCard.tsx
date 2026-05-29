@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import type { Challenge } from "@upgradian/types";
 import { Card, DifficultyBadge, XPBadge } from "@upgradian/ui";
 import { SUPPORTED_LANGUAGES } from "@upgradian/types";

@@ -12,6 +12,7 @@ module.exports = {
     extend: {
       colors: {
         brand:   { DEFAULT: "#4361ee", dark: "#3451d1", light: "#6c8aff" },
+        orange:  { DEFAULT: "#f97316", dark: "#ea580c", light: "#fed7aa" },
         violet:  { DEFAULT: "#7c3aed", light: "#a78bfa" },
         cyan:    { DEFAULT: "#06b6d4", light: "#67e8f9" },
         amber:   { DEFAULT: "#f59e0b" },
@@ -47,12 +48,14 @@ module.exports = {
         shimmer:  { from: { backgroundPosition: "-200% 0" }, to: { backgroundPosition: "200% 0" } },
       },
       boxShadow: {
-        brand:       "0 4px 24px rgba(67,97,238,0.3)",
-        "brand-lg":  "0 8px 48px rgba(67,97,238,0.4)",
-        violet:      "0 4px 24px rgba(124,58,237,0.3)",
-        glow:        "0 0 60px rgba(67,97,238,0.2)",
-        card:        "0 1px 3px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2)",
-        "card-hover":"0 8px 40px rgba(0,0,0,.5)",
+        brand:        "0 4px 24px rgba(67,97,238,0.3)",
+        "brand-lg":   "0 8px 48px rgba(67,97,238,0.4)",
+        orange:       "0 4px 20px rgba(249,115,22,0.28)",
+        "orange-lg":  "0 8px 40px rgba(249,115,22,0.38)",
+        violet:       "0 4px 24px rgba(124,58,237,0.3)",
+        glow:         "0 0 60px rgba(67,97,238,0.2)",
+        card:         "0 1px 3px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04)",
+        "card-hover": "0 4px 20px rgba(0,0,0,.10)",
         "inner-glow": "inset 0 1px 0 rgba(255,255,255,0.06)",
       },
       backgroundImage: {

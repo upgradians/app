@@ -35,7 +35,7 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   return (
-    <div className="bg-[#000008] text-white overflow-x-hidden">
+    <div className="overflow-x-hidden" data-theme="light">
       <MarketingNav isAuthenticated={!!user} />
 
       {/* 1. Hero — IT/AI company positioning */}

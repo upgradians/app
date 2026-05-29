@@ -16,6 +16,7 @@ const STAT_CARD_VARIANTS = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1 } }),
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function RecruiterDashboardClient({ recruiter, topCandidates, jobs, recentApplications }: Props) {
   const stats = [
     { label: "Active Jobs",       value: jobs.length,             icon: "💼", color: "text-brand" },

@@ -35,14 +35,14 @@ export default async function AdminSubmissionsPage() {
           {!submissions?.length && (
             <div className="py-12 text-center text-sm text-[var(--text-3)]">No submissions found</div>
           )}
-          {submissions?.map((s: any) => (
+          {submissions?.map((s) => (
             <div key={s.id} className="px-5 py-3 flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-bold text-[var(--text-1)] truncate">
-                  {s.challenges?.title ?? "Unknown challenge"}
+                  {(Array.isArray(s.challenges) ? s.challenges[0]?.title : (s.challenges as { title?: string } | null)?.title) ?? "Unknown challenge"}
                 </div>
                 <div className="text-xs text-[var(--text-3)]">
-                  @{s.profiles?.username ?? "unknown"} · {s.language ?? "—"}
+                  @{(Array.isArray(s.profiles) ? s.profiles[0]?.username : (s.profiles as { username?: string } | null)?.username) ?? "unknown"} · {s.language ?? "—"}
                 </div>
               </div>
               <div className="hidden sm:flex items-center gap-2 text-xs">
