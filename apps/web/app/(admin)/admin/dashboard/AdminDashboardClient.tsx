@@ -14,6 +14,14 @@ export interface StudentRow {
   college: string | null;
   last_active_at: string | null;
   role: string | null;
+  // Latest assessment (optional)
+  assessment_track?: string | null;
+  assessment_score?: number | null;
+  assessment_total?: number | null;
+  assessment_pct?: number | null;
+  assessment_status?: "completed" | "disqualified" | null;
+  assessment_tab_switches?: number | null;
+  assessment_noise_violations?: number | null;
 }
 
 interface Props {
@@ -172,7 +180,7 @@ export function AdminDashboardClient({ stats, students }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
-                {["Student", "Email", "Registered", "Course / Program", "Status", "Latest Activity", "Actions"].map(h => (
+                {["Student", "Email", "Registered", "Course / Program", "Status", "Latest Activity", "Assessment", "Actions"].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap">
                     {h}
                   </th>
@@ -182,7 +190,7 @@ export function AdminDashboardClient({ stats, students }: Props) {
             <tbody className="divide-y divide-gray-50">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-14 text-center text-sm text-gray-400">
+                  <td colSpan={8} className="py-14 text-center text-sm text-gray-400">
                     {search ? `No students match "${search}"` : "No students registered yet."}
                   </td>
                 </tr>
@@ -241,6 +249,32 @@ export function AdminDashboardClient({ stats, students }: Props) {
                     {/* Latest activity */}
                     <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
                       {timeAgo(s.last_active_at)}
+                    </td>
+
+                    {/* Latest assessment */}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {s.assessment_track ? (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-gray-700 truncate max-w-[120px]">{s.assessment_track}</div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-gray-900">{s.assessment_pct?.toFixed(0)}%</span>
+                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full border ${
+                              s.assessment_status === "disqualified"
+                                ? "bg-red-50 text-red-600 border-red-200"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            }`}>
+                              {s.assessment_status === "disqualified" ? "DQ" : "Done"}
+                            </span>
+                          </div>
+                          {((s.assessment_tab_switches ?? 0) > 0 || (s.assessment_noise_violations ?? 0) > 0) && (
+                            <div className="text-[10px] text-amber-600">
+                              {s.assessment_noise_violations ?? 0}🔊 {s.assessment_tab_switches ?? 0}↔
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-300">—</span>
+                      )}
                     </td>
 
                     {/* Delete action */}
