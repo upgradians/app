@@ -34,7 +34,13 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (user && AUTH_ROUTES.some(r => pathname.startsWith(r))) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const dest = user.id === ADMIN_UID ? "/admin/dashboard" : "/dashboard";
+    return NextResponse.redirect(new URL(dest, request.url));
+  }
+
+  // Redirect admin away from the student dashboard
+  if (user && user.id === ADMIN_UID && pathname === "/dashboard") {
+    return NextResponse.redirect(new URL("/admin/dashboard", request.url));
   }
 
   // Protect all non-public routes

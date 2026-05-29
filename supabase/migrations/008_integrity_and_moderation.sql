@@ -46,6 +46,9 @@ create index if not exists idx_usc_user_id on public.user_solved_challenges (use
 
 alter table public.user_solved_challenges enable row level security;
 
+drop policy if exists "Users read own solved challenges"  on public.user_solved_challenges;
+drop policy if exists "Users insert own solved challenges" on public.user_solved_challenges;
+
 create policy "Users read own solved challenges"
   on public.user_solved_challenges for select
   using (auth.uid() = user_id);
@@ -73,6 +76,9 @@ create index if not exists idx_modlog_admin     on public.moderation_logs (admin
 create index if not exists idx_modlog_created   on public.moderation_logs (created_at desc);
 
 alter table public.moderation_logs enable row level security;
+
+drop policy if exists "Admin read moderation_logs"  on public.moderation_logs;
+drop policy if exists "Admin insert moderation_logs" on public.moderation_logs;
 
 create policy "Admin read moderation_logs"
   on public.moderation_logs for select
